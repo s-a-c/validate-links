@@ -1,0 +1,304 @@
+name: Documentation Link Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '.ai/guides/**/*.md'
+      - '.ai/tools/**'
+      - '.github/workflows/documentation-validation.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.ai/guides/**/*.md'
+      - '.ai/tools/**'
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      max_broken_links:
+        description: 'Maximum allowed broken links'
+        required: false
+        default: '50'
+        type: string
+      notification_level:
+        description: 'Notification level'
+        required: false
+        default: 'normal'
+        type: choice
+        options:
+          - 'silent'
+          - 'normal'
+          - 'verbose'
+
+env:
+  PYTHON_VERSION: '3.11'
+  MAX_BROKEN_LINKS: ${{ github.event.inputs.max_broken_links || '50' }}
+  NOTIFICATION_LEVEL: ${{ github.event.inputs.notification_level || 'normal' }}
+
+jobs:
+  validate-links:
+    name: Validate Documentation Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lxml
+      
+      - name: Create Reports Directory
+        run: |
+          mkdir -p .ai/reports/automated
+          mkdir -p .ai/reports/ci
+      
+      - name: Run Link Validation
+        id: validation
+        run: |
+          cd ${{ github.workspace }}
+          python .ai/tools/automated_link_validation.py \
+            --base-dir .ai/guides/chinook \
+            --max-broken ${{ env.MAX_BROKEN_LINKS }} \
+            --ci
+        continue-on-error: true
+      
+      - name: Parse Validation Results
+        id: parse_results
+        run: |
+          # Get the latest validation result
+          LATEST_REPORT=$(ls -t .ai/reports/automated/validation_summary_*.md | head -1)
+          
+          if [ -f "$LATEST_REPORT" ]; then
+            # Extract key metrics
+            SUCCESS_RATE=$(grep "Success Rate:" "$LATEST_REPORT" | grep -o '[0-9.]*%' | head -1)
+            BROKEN_LINKS=$(grep "Broken Links:" "$LATEST_REPORT" | grep -o '[0-9]*' | head -1)
+            STATUS=$(grep "Status:" "$LATEST_REPORT" | grep -o '\(PASS\|WARN\|FAIL\)' | head -1)
+            
+            echo "success_rate=$SUCCESS_RATE" >> $GITHUB_OUTPUT
+            echo "broken_links=$BROKEN_LINKS" >> $GITHUB_OUTPUT
+            echo "status=$STATUS" >> $GITHUB_OUTPUT
+            echo "report_file=$LATEST_REPORT" >> $GITHUB_OUTPUT
+          else
+            echo "status=ERROR" >> $GITHUB_OUTPUT
+            echo "broken_links=unknown" >> $GITHUB_OUTPUT
+            echo "success_rate=unknown" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload Validation Reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: validation-reports-${{ github.run_number }}
+          path: |
+            .ai/reports/automated/
+            .ai/reports/ci/
+          retention-days: 30
+      
+      - name: Create Issue on Failure
+        if: steps.parse_results.outputs.status == 'FAIL' && github.event_name != 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read the validation report
+            const reportFile = '${{ steps.parse_results.outputs.report_file }}';
+            let reportContent = 'Validation report not available.';
+            
+            if (fs.existsSync(reportFile)) {
+              reportContent = fs.readFileSync(reportFile, 'utf8');
+            }
+            
+            const issueTitle = `🚨 Documentation Link Validation Failed - ${new Date().toISOString().split('T')[0]}`;
+            const issueBody = `
+            # Documentation Link Validation Failure
+            
+            **Status:** ❌ FAIL  
+            **Success Rate:** ${{ steps.parse_results.outputs.success_rate }}  
+            **Broken Links:** ${{ steps.parse_results.outputs.broken_links }}  
+            **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ## Validation Report
+            
+            ${reportContent}
+            
+            ## Action Required
+            
+            The documentation link validation has failed with a high number of broken links. Please review and fix the broken links to maintain documentation quality.
+            
+            ### Next Steps
+            1. Review the broken links listed in the report
+            2. Fix or remove broken links
+            3. Update any outdated references
+            4. Re-run the validation workflow
+            
+            ---
+            *This issue was automatically created by the documentation validation workflow.*
+            `;
+            
+            // Check if there's already an open issue for link validation
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'documentation,automated'
+            });
+            
+            const existingIssue = issues.find(issue => 
+              issue.title.includes('Documentation Link Validation Failed')
+            );
+            
+            if (existingIssue) {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `## Updated Validation Results\n\n${issueBody}`
+              });
+            } else {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['documentation', 'automated', 'bug']
+              });
+            }
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportFile = '${{ steps.parse_results.outputs.report_file }}';
+            const status = '${{ steps.parse_results.outputs.status }}';
+            const successRate = '${{ steps.parse_results.outputs.success_rate }}';
+            const brokenLinks = '${{ steps.parse_results.outputs.broken_links }}';
+            
+            const statusEmoji = {
+              'PASS': '✅',
+              'WARN': '⚠️',
+              'FAIL': '❌',
+              'ERROR': '💥'
+            };
+            
+            let reportSummary = 'Report not available.';
+            if (fs.existsSync(reportFile)) {
+              const content = fs.readFileSync(reportFile, 'utf8');
+              // Extract summary section
+              const summaryMatch = content.match(/## Summary([\s\S]*?)##/);
+              if (summaryMatch) {
+                reportSummary = summaryMatch[1].trim();
+              }
+            }
+            
+            const comment = `
+            ## ${statusEmoji[status] || '❓'} Documentation Link Validation
+            
+            **Status:** ${status}  
+            **Success Rate:** ${successRate}  
+            **Broken Links:** ${brokenLinks}
+            
+            ${reportSummary}
+            
+            ${status === 'FAIL' ? '⚠️ **This PR introduces or contains significant link validation issues. Please review and fix before merging.**' : ''}
+            ${status === 'WARN' ? '⚠️ **This PR has some link validation warnings. Consider reviewing before merging.**' : ''}
+            ${status === 'PASS' ? '✅ **All documentation links are working correctly.**' : ''}
+            
+            <details>
+            <summary>View detailed report</summary>
+            
+            [Download full validation report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            </details>
+            `;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+      
+      - name: Set Job Status
+        if: always()
+        run: |
+          STATUS="${{ steps.parse_results.outputs.status }}"
+          case $STATUS in
+            "PASS")
+              echo "✅ Validation passed successfully"
+              exit 0
+              ;;
+            "WARN")
+              echo "⚠️ Validation completed with warnings"
+              exit 0
+              ;;
+            "FAIL")
+              echo "❌ Validation failed"
+              exit 1
+              ;;
+            *)
+              echo "💥 Validation error"
+              exit 1
+              ;;
+          esac
+  
+  notify-slack:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    needs: validate-links
+    if: always() && github.event_name == 'schedule' && env.NOTIFICATION_LEVEL != 'silent'
+    
+    steps:
+      - name: Send Slack Notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ needs.validate-links.outputs.status }}"
+          SUCCESS_RATE="${{ needs.validate-links.outputs.success_rate }}"
+          BROKEN_LINKS="${{ needs.validate-links.outputs.broken_links }}"
+          
+          case $STATUS in
+            "PASS") COLOR="good"; EMOJI="✅" ;;
+            "WARN") COLOR="warning"; EMOJI="⚠️" ;;
+            "FAIL") COLOR="danger"; EMOJI="❌" ;;
+            *) COLOR="warning"; EMOJI="❓" ;;
+          esac
+          
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"${EMOJI} Documentation Link Validation: ${STATUS}\",
+              \"attachments\": [{
+                \"color\": \"${COLOR}\",
+                \"fields\": [
+                  {\"title\": \"Success Rate\", \"value\": \"${SUCCESS_RATE}\", \"short\": true},
+                  {\"title\": \"Broken Links\", \"value\": \"${BROKEN_LINKS}\", \"short\": true},
+                  {\"title\": \"Repository\", \"value\": \"${{ github.repository }}\", \"short\": true},
+                  {\"title\": \"Workflow\", \"value\": \"<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>\", \"short\": true}
+                ]
+              }]
+            }" \
+            $SLACK_WEBHOOK_URL

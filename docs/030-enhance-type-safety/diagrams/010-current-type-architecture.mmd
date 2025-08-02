@@ -1,0 +1,102 @@
+graph TB
+    %% Current Type Architecture - validate-links Application
+    %% Color scheme: Green for strong types, Blue for good types, Orange for weak types, Red for missing
+
+    subgraph "Commands Layer"
+        ValidateCmd[ValidateCommand<br/>Type Safety: 85%]:::goodType
+        ReportCmd[ReportCommand<br/>Type Safety: 89%]:::goodType
+        BaseCmd[BaseValidationCommand<br/>Type Safety: 90%]:::goodType
+        ConfigCmd[ConfigCommand<br/>Type Safety: 88%]:::goodType
+        FixCmd[FixCommand<br/>Type Safety: 87%]:::goodType
+    end
+
+    subgraph "Services Layer"
+        LinkValidation[LinkValidationService<br/>Type Safety: 82%<br/>ISSUE: Union Types]:::weakType
+        Reporting[ReportingService<br/>Type Safety: 88%]:::goodType
+        Statistics[StatisticsService<br/>Type Safety: 90%<br/>ISSUE: Array Returns]:::weakType
+        Security[SecurityValidationService<br/>Type Safety: 93%<br/>GOOD: Readonly]:::strongType
+        GitHub[GitHubAnchorService<br/>Type Safety: 91%]:::goodType
+        Concurrent[ConcurrentValidationService<br/>Type Safety: 92%<br/>GOOD: Readonly]:::strongType
+        PluginMgr[PluginManager<br/>Type Safety: 89%<br/>GOOD: Readonly]:::strongType
+    end
+
+    subgraph "Contracts/Interfaces"
+        LinkValidationInterface[LinkValidationInterface<br/>ISSUE: Union Types<br/>ISSUE: Array Returns]:::weakType
+        ReportingInterface[ReportingInterface<br/>Type Safety: 95%]:::strongType
+        StatisticsInterface[StatisticsInterface<br/>ISSUE: Array Returns]:::weakType
+        SecurityInterface[SecurityValidationInterface<br/>Type Safety: 93%]:::strongType
+        GitHubInterface[GitHubAnchorInterface<br/>Type Safety: 94%]:::goodType
+    end
+
+    subgraph "Value Objects DTOs"
+        ValidationConfig[ValidationConfig<br/>Type Safety: 95%<br/>GOOD: Readonly<br/>GOOD: Factory Methods]:::strongType
+        ValidationResult[ValidationResult<br/>Type Safety: 94%<br/>GOOD: Readonly<br/>GOOD: Stringable]:::strongType
+        FormatterOptions[FormatterOptions<br/>Type Safety: 93%<br/>GOOD: Readonly]:::strongType
+        ReportSummary[ReportSummary<br/>Type Safety: 91%<br/>GOOD: Readonly]:::strongType
+        ValidationBatch[ValidationBatch<br/>Type Safety: 90%<br/>GOOD: Readonly]:::strongType
+        LinkExtractionResult[LinkExtractionResult<br/>Type Safety: 92%<br/>GOOD: Readonly]:::strongType
+    end
+
+    subgraph "Enums"
+        LinkStatus[LinkStatus<br/>Type Safety: 98%<br/>GOOD: Rich Behavior<br/>GOOD: Match Expressions]:::strongType
+        OutputFormat[OutputFormat<br/>Type Safety: 97%<br/>GOOD: Rich Behavior]:::strongType
+        ValidationScope[ValidationScope<br/>Type Safety: 96%<br/>GOOD: String Backed]:::strongType
+    end
+
+    subgraph "Formatters"
+        ConsoleFormatter[ConsoleFormatter<br/>Type Safety: 87%<br/>ISSUE: Array Parameters]:::weakType
+        HtmlFormatter[HtmlFormatter<br/>Type Safety: 86%<br/>ISSUE: Array Parameters]:::weakType
+        JsonFormatter[JsonFormatter<br/>Type Safety: 88%<br/>ISSUE: Array Parameters]:::weakType
+        MarkdownFormatter[MarkdownFormatter<br/>Type Safety: 85%<br/>ISSUE: Array Parameters]:::weakType
+    end
+
+    subgraph "Exceptions"
+        ValidateLinksException[ValidateLinksException<br/>Type Safety: 94%<br/>GOOD: Abstract Base]:::strongType
+        ValidationException[ValidationException<br/>Type Safety: 93%]:::strongType
+        SecurityException[SecurityException<br/>Type Safety: 92%]:::strongType
+        ConfigException[ConfigurationException<br/>Type Safety: 91%]:::strongType
+    end
+
+    %% Problematic Data Flow
+    ValidateCmd -.->|ValidationConfig or array| LinkValidation
+    LinkValidation -.->|array returns| ValidateCmd
+    Statistics -.->|array statistics| Reporting
+    LinkValidation -.->|array results| ConsoleFormatter
+    LinkValidation -.->|array results| HtmlFormatter
+
+    %% Strong Type Relationships
+    ValidateCmd -->|ValidationConfig| ValidationConfig
+    LinkValidation -->|ValidationResult| ValidationResult
+    ValidationResult -->|LinkStatus| LinkStatus
+    ValidationConfig -->|ValidationScope| ValidationScope
+    ValidationConfig -->|OutputFormat| OutputFormat
+
+    %% Interface Implementation
+    LinkValidation -.->|implements| LinkValidationInterface
+    Reporting -.->|implements| ReportingInterface
+    Statistics -.->|implements| StatisticsInterface
+    Security -.->|implements| SecurityInterface
+    GitHub -.->|implements| GitHubInterface
+
+    %% Missing Collections
+    MissingCollections[MISSING Collections:<br/>ValidationResultCollection<br/>LinkCollection<br/>StatisticsCollection]:::missingType
+
+    %% Missing Enums
+    MissingEnums[MISSING Enums:<br/>LinkType<br/>ValidationLevel<br/>HttpMethod<br/>FileType]:::missingType
+
+    %% Legend
+    subgraph "Legend"
+        StrongExample[Strong Type Safety<br/>95-100%]:::strongType
+        GoodExample[Good Type Safety<br/>85-94%]:::goodType
+        WeakExample[Weak Type Safety<br/>80-84%<br/>Union Types/Arrays]:::weakType
+        MissingExample[Missing Components<br/>Opportunities]:::missingType
+    end
+
+    %% Current Overall Score
+    CurrentScore[Overall Type Safety Score: 89%<br/>Target: 96% improvement needed]:::weakType
+
+    %% Styling
+    classDef strongType fill:#2d5a27,stroke:#4caf50,stroke-width:3px,color:#ffffff
+    classDef goodType fill:#1565c0,stroke:#2196f3,stroke-width:2px,color:#ffffff
+    classDef weakType fill:#e65100,stroke:#ff9800,stroke-width:2px,color:#ffffff
+    classDef missingType fill:#c62828,stroke:#f44336,stroke-width:2px,color:#ffffff,stroke-dasharray: 5 5

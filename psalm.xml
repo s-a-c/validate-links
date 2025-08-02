@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psalm
+    cacheDirectory="reports/psalm"
+    errorLevel="1"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="true"
+    findUnusedPsalmSuppress="true"
+    resolveFromConfigFile="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    phpVersion="8.4"
+    usePhpDocMethodsWithoutMagicCall="false"
+    reportMixedIssues="true"
+    totallyTyped="true"
+    ensureArrayStringOffsetsExist="true"
+    ensureArrayIntOffsetsExist="true"
+    checkForThrowsDocblock="true"
+    checkForThrowsInGlobalScope="true"
+    ignoreInternalFunctionFalseReturn="false"
+    ignoreInternalFunctionNullReturn="false"
+    allowCoercionFromStringToClassConst="false"
+    allowStringToStandInForClass="false"
+    memoizeMethodCallResults="true"
+    hoistConstants="true"
+    allowPhpStormGenerics="false"
+    hideExternalErrors="false"
+>
+    <!-- Project paths - consistent with PHPStan -->
+    <projectFiles>
+        <directory name="app" />
+        <directory name="bootstrap" />
+        <directory name="config" />
+        <directory name="tests" />
+        <ignoreFiles>
+            <directory name="vendor" />
+            <directory name="node_modules" />
+            <directory name="storage" />
+            <directory name="public" />
+            <directory name="bootstrap/cache" />
+            <directory name="reports" />
+            <file name="tests/TestCase.php" />
+        </ignoreFiles>
+    </projectFiles>
+
+    <!-- Plugins for enhanced Laravel support -->
+    <plugins>
+        <pluginClass class="Psalm\LaravelPlugin\Plugin">
+            <config>
+                <eloquent>
+                    <fake_models>true</fake_models>
+                </eloquent>
+            </config>
+        </pluginClass>
+        <pluginClass class="Orklah\StrictEquality\Plugin" />
+    </plugins>
+
+    <!-- Issue handlers - maximizing Psalm features -->
+    <issueHandlers>
+        <!-- Type coverage -->
+        <MissingReturnType errorLevel="error" />
+        <MissingPropertyType errorLevel="error" />
+        <MissingParamType errorLevel="error" />
+        <MissingClosureReturnType errorLevel="error" />
+        <MissingThrowsDocblock errorLevel="info" />
+
+        <!-- Mixed types - consistent with PHPStan level 8 -->
+        <MixedReturnStatement errorLevel="error" />
+        <MixedReturnTypeCoercion errorLevel="error" />
+        <MixedArgument errorLevel="error" />
+        <MixedAssignment errorLevel="error" />
+        <MixedArrayAccess errorLevel="error" />
+        <MixedArrayAssignment errorLevel="error" />
+        <MixedArrayOffset errorLevel="error" />
+        <MixedPropertyFetch errorLevel="error" />
+        <MixedPropertyAssignment errorLevel="error" />
+        <MixedMethodCall errorLevel="error" />
+        <MixedOperand errorLevel="error" />
+        <MixedStringOffsetAssignment errorLevel="error" />
+        <MixedArrayTypeCoercion errorLevel="error" />
+        <MixedPropertyTypeCoercion errorLevel="error" />
+
+        <!-- Strict comparisons - consistent with Pint config -->
+        <TypeDoesNotContainType errorLevel="error" />
+        <RedundantCondition errorLevel="error" />
+        <RedundantConditionGivenDocblockType errorLevel="error" />
+        <DocblockTypeContradiction errorLevel="error" />
+
+        <!-- Null safety -->
+        <PossiblyNullReference errorLevel="error" />
+        <PossiblyNullArgument errorLevel="error" />
+        <PossiblyNullArrayAccess errorLevel="error" />
+        <PossiblyNullArrayAssignment errorLevel="error" />
+        <PossiblyNullArrayOffset errorLevel="error" />
+        <PossiblyNullFunctionCall errorLevel="error" />
+        <PossiblyNullIterator errorLevel="error" />
+        <PossiblyNullOperand errorLevel="error" />
+        <PossiblyNullPropertyAssignment errorLevel="error" />
+        <PossiblyNullPropertyFetch errorLevel="error" />
+
+        <!-- Undefined variables/properties -->
+        <UndefinedVariable errorLevel="error" />
+        <UndefinedGlobalVariable errorLevel="error" />
+        <UndefinedPropertyFetch errorLevel="error" />
+        <UndefinedPropertyAssignment errorLevel="error" />
+        <UndefinedThisPropertyFetch errorLevel="error" />
+        <UndefinedThisPropertyAssignment errorLevel="error" />
+
+        <!-- Invalid types -->
+        <InvalidReturnType errorLevel="error" />
+        <InvalidReturnStatement errorLevel="error" />
+        <InvalidArgument errorLevel="error" />
+        <InvalidArrayAccess errorLevel="error" />
+        <InvalidArrayAssignment errorLevel="error" />
+        <InvalidArrayOffset errorLevel="error" />
+        <InvalidCast errorLevel="error" />
+        <InvalidClone errorLevel="error" />
+        <InvalidFunctionCall errorLevel="error" />
+        <InvalidIterator errorLevel="error" />
+        <InvalidMethodCall errorLevel="error" />
+        <InvalidOperand errorLevel="error" />
+        <InvalidPropertyAssignment errorLevel="error" />
+        <InvalidPropertyFetch errorLevel="error" />
+        <InvalidStaticInvocation errorLevel="error" />
+        <InvalidStringClass errorLevel="error" />
+        <InvalidThrow errorLevel="error" />
+        <InvalidToString errorLevel="error" />
+
+        <!-- Unused code detection -->
+        <UnusedClass errorLevel="error" />
+        <UnusedMethod errorLevel="info" />
+        <UnusedProperty errorLevel="info" />
+        <UnusedVariable errorLevel="info" />
+        <UnusedParam errorLevel="info" />
+        <UnusedClosureParam errorLevel="info" />
+        <UnusedConstructor errorLevel="error" />
+        <UnusedFunctionCall errorLevel="info" />
+
+        <!-- Deprecated features -->
+        <DeprecatedClass errorLevel="error" />
+        <DeprecatedConstant errorLevel="error" />
+        <DeprecatedFunction errorLevel="error" />
+        <DeprecatedInterface errorLevel="error" />
+        <DeprecatedMethod errorLevel="error" />
+        <DeprecatedProperty errorLevel="error" />
+        <DeprecatedTrait errorLevel="error" />
+
+        <!-- Immutability -->
+        <ImpureMethodCall errorLevel="info" />
+        <ImpurePropertyAssignment errorLevel="info" />
+        <ImpureStaticProperty errorLevel="info" />
+
+        <!-- Taint analysis for security -->
+        <TaintedInput errorLevel="error" />
+        <TaintedHtml errorLevel="error" />
+        <TaintedShell errorLevel="error" />
+        <TaintedInclude errorLevel="error" />
+        <TaintedCookie errorLevel="error" />
+        <TaintedHeader errorLevel="error" />
+
+        <!-- Risky features -->
+        <RiskyTruthyFalsyComparison errorLevel="info" />
+        <NoInterfaceProperties errorLevel="error" />
+        <OverriddenMethodAccess errorLevel="error" />
+        <MethodSignatureMismatch errorLevel="error" />
+        <OverriddenPropertyAccess errorLevel="error" />
+        <PropertyNotSetInConstructor errorLevel="error" />
+        <MissingConstructor errorLevel="error" />
+
+        <!-- Performance related -->
+        <ComplexMethod errorLevel="info" />
+        <ComplexFunction errorLevel="info" />
+        <TooManyArguments errorLevel="info" />
+
+        <!-- Code style consistency with Pint -->
+        <InvalidDocblock errorLevel="error" />
+        <InvalidDocblockParamName errorLevel="error" />
+        <MismatchingDocblockReturnType errorLevel="error" />
+        <MismatchingDocblockParamType errorLevel="error" />
+        <MissingDocblockType errorLevel="info" />
+
+        <!-- Laravel specific (handled by plugin) -->
+        <UndefinedMagicMethod errorLevel="info" />
+        <UndefinedMagicPropertyFetch errorLevel="info" />
+        <UndefinedMagicPropertyAssignment errorLevel="info" />
+
+        <!-- Allow some flexibility for tests -->
+        <PropertyNotSetInConstructor>
+            <errorLevel type="suppress">
+                <directory name="tests" />
+            </errorLevel>
+        </PropertyNotSetInConstructor>
+        <MissingConstructor>
+            <errorLevel type="suppress">
+                <directory name="tests" />
+            </errorLevel>
+        </MissingConstructor>
+    </issueHandlers>
+</psalm>

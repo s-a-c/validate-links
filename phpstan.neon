@@ -1,0 +1,49 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: max
+
+    paths:
+        - app
+        - bootstrap
+        - config
+        - tests
+
+    excludePaths:
+        - vendor
+        - vendor/*
+        - vendor/**/*
+
+    errorFormat: table
+    editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
+    editorUrlTitle: '%%relFile%%:%%line%%'
+
+    # File extensions to analyze
+    fileExtensions:
+        - php
+
+    tmpDir: reports/phpstan
+
+    ignoreErrors:
+
+    checkExplicitMixed: true
+    checkImplicitMixed: true
+    checkMissingCallableSignature: true
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+
+    # PHP 8.4 specific settings
+    phpVersion: 80400
+
+    # UTF-8 and encoding settings
+    universalObjectCratesClasses:
+        - stdClass
+
+    # Performance settings
+    parallel:
+        maximumNumberOfProcesses: 8
+
+    # Bootstrap file to set UTF-8 locale
+    bootstrapFiles:
+        - phpstan-bootstrap.php

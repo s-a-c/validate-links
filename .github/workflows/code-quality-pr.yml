@@ -1,0 +1,65 @@
+name: Code Quality PR Comment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main, master, develop ]
+
+jobs:
+  quality-report:
+    name: Generate Quality Report
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, intl
+          coverage: pcov
+      
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+      
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse --error-format=json > reports/phpstan/report.json || true
+      
+      - name: Run PHP Insights
+        run: php artisan insights --format=json > reports/phpinsights/report.json || true
+      
+      - name: Generate Quality Dashboard
+        run: php artisan code-quality:generate-dashboard
+      
+      - name: Generate Summary
+        id: summary
+        run: |
+          SUMMARY=$(cat reports/dashboard/summary.json | jq -r '.summary')
+          SUMMARY="${SUMMARY//'%'/'%25'}"
+          SUMMARY="${SUMMARY//$'\n'/'%0A'}"
+          SUMMARY="${SUMMARY//$'\r'/'%0D'}"
+          echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
+      
+      - name: Comment PR
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { issue: { number: issue_number }, repo: { owner, repo } } = context;
+            const summary = `${{ steps.summary.outputs.summary }}`;
+            
+            github.rest.issues.createComment({
+              issue_number,
+              owner,
+              repo,
+              body: summary
+            });
+      
+      - name: Upload Quality Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: reports/dashboard/
+          retention-days: 7

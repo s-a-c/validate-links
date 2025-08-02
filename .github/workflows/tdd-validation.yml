@@ -1,0 +1,46 @@
+name: TDD Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: [8.4]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: sqlite3, redis, mbstring, openssl, pdo_sqlite
+        coverage: xdebug
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run Unit Tests
+      run: ./vendor/bin/pest tests/Unit --coverage --min=95
+
+    - name: Run Feature Tests
+      run: ./vendor/bin/pest tests/Feature --parallel
+
+    - name: Run Performance Tests
+      run: ./vendor/bin/pest tests/Performance
+
+    - name: Static Analysis
+      run: ./vendor/bin/phpstan analyse --level=8
+
+    - name: Security Check (via Roave Security Advisories)
+      run: composer audit
+
+    - name: Code Style Check (using Laravel Pint)
+      run: ./vendor/bin/pint --test

@@ -1,0 +1,52 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [8.4]
+        dependency-version: [prefer-lowest, prefer-stable]
+
+    name: PHP ${{ matrix.php-version }} - ${{ matrix.dependency-version }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v4
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-version }}-
+
+    - name: Install dependencies
+      run: |
+        composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
+
+    - name: Run PHPStan
+      run: vendor/bin/phpstan analyse
+
+    - name: Run Pint
+      run: vendor/bin/pint --test
+
+    - name: Run Pest Tests
+      run: vendor/bin/pest --coverage --min=90
+
+    - name: Run PHP Insights
+      run: vendor/bin/phpinsights --no-interaction --min-quality=90 --min-complexity=90 --min-architecture=90 --min-style=90
