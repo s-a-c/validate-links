@@ -6,12 +6,20 @@ namespace App\Services\Formatters;
 
 use App\Services\ValueObjects\ValidationResult;
 
-final class JsonFormatter
+/**
+ * JSON formatter for validation results with structured data output.
+ *
+ * This formatter provides machine-readable JSON output suitable for
+ * API responses, CI/CD integration, and programmatic processing.
+ */
+class JsonFormatter
 {
     /**
-     * Format validation result as JSON.
+     * Format validation result as structured JSON.
      *
-     * @param  array<string, mixed>  $statistics
+     * @param ValidationResult $result The validation result to format
+     * @param array<string, mixed> $statistics Additional statistics data
+     * @return string Pretty-printed JSON string with validation data
      */
     public function format(ValidationResult $result, array $statistics): string
     {

@@ -10,7 +10,7 @@ use App\Services\ValueObjects\ValidationConfig;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\info;
 
-final class FixCommand extends BaseValidationCommand
+class FixCommand extends BaseValidationCommand
 {
     protected $signature = 'fix
         {paths* : Paths to fix}

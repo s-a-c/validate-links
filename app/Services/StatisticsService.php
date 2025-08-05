@@ -7,7 +7,7 @@ namespace App\Services;
 use App\Services\Contracts\StatisticsInterface;
 use App\Services\ValueObjects\ValidationStatistics;
 
-final class StatisticsService implements StatisticsInterface
+class StatisticsService implements StatisticsInterface
 {
     /**
      * @var array{total: int, valid: int, invalid: int, files_processed: int, total_links: int, start_time: string}

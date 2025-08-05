@@ -10,7 +10,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\text;
 
-final class ConfigCommand extends Command
+class ConfigCommand extends Command
 {
     protected $signature = 'config
         {--init : Initialize configuration file}

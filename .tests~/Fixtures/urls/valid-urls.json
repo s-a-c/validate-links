@@ -1,0 +1,81 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive collection of valid URLs for testing various scenarios",
+  "categories": {
+    "basic_http": [
+      "http://example.com",
+      "http://test.org",
+      "http://demo.net"
+    ],
+    "basic_https": [
+      "https://example.com",
+      "https://test.org",
+      "https://demo.net",
+      "https://secure.example.com"
+    ],
+    "with_ports": [
+      "http://localhost:8080",
+      "https://example.com:8443",
+      "http://test.org:3000",
+      "https://api.service.com:9443"
+    ],
+    "with_paths": [
+      "https://example.com/path/to/resource",
+      "https://api.service.com/v1/endpoint",
+      "https://docs.example.com/guide/installation",
+      "https://cdn.example.com/assets/style.css"
+    ],
+    "with_query_params": [
+      "https://example.com?param=value",
+      "https://search.example.com?q=test&limit=10",
+      "https://api.service.com/users?page=1&size=20&sort=name",
+      "https://example.com/search?query=test%20data&format=json"
+    ],
+    "with_fragments": [
+      "https://example.com#section",
+      "https://docs.example.com/guide#installation",
+      "https://example.com/page#top-section",
+      "https://github.com/user/repo#readme"
+    ],
+    "complex_urls": [
+      "https://user:pass@example.com:8080/path?param=value#section",
+      "https://api.example.com/v2/users/123/posts?include=comments&sort=date#latest",
+      "https://subdomain.example.com:9000/deep/nested/path?complex=param&array[]=1&array[]=2",
+      "https://example.com/path/with-dashes_and_underscores?param-name=value_with_underscores"
+    ],
+    "international": [
+      "https://example.com/测试",
+      "https://пример.рф",
+      "https://例え.テスト",
+      "https://example.com/café/naïve"
+    ],
+    "encoded_urls": [
+      "https://example.com/path%20with%20spaces",
+      "https://example.com/path%2Fwith%2Fslashes",
+      "https://example.com/search?q=hello%20world",
+      "https://example.com/special%21%40%23%24%25%5E%26%2A"
+    ],
+    "subdomains": [
+      "https://api.example.com",
+      "https://cdn.example.com",
+      "https://blog.example.com",
+      "https://docs.example.com",
+      "https://staging.api.example.com",
+      "https://v2.api.example.com"
+    ],
+    "common_services": [
+      "https://github.com/user/repo",
+      "https://stackoverflow.com/questions/123456",
+      "https://www.google.com/search?q=test",
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "https://twitter.com/username/status/123456789",
+      "https://linkedin.com/in/username"
+    ]
+  },
+  "metadata": {
+    "total_urls": 47,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["valid", "http", "https", "testing", "deterministic"]
+  }
+}

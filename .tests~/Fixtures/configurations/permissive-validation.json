@@ -1,0 +1,100 @@
+{
+  "version": "1.0.0",
+  "description": "Permissive validation configuration for development and testing environments",
+  "configuration": {
+    "scopes": ["ALL"],
+    "timeout": 30,
+    "max_redirects": 10,
+    "concurrent_requests": 20,
+    "cache_enabled": true,
+    "follow_redirects": true,
+    "user_agent": "validate-links-permissive/1.0",
+    "verify_ssl": false,
+    "security_checks": false,
+    "max_file_size": 104857600,
+    "excluded_domains": [],
+    "included_domains": [],
+    "blocked_protocols": [],
+    "allowed_protocols": [
+      "http",
+      "https",
+      "ftp",
+      "file"
+    ],
+    "blocked_file_extensions": [],
+    "allowed_file_extensions": [
+      "*"
+    ],
+    "security_rules": {
+      "block_path_traversal": false,
+      "block_suspicious_patterns": false,
+      "validate_encoding": false,
+      "check_homograph_attacks": false,
+      "block_private_ips": false,
+      "validate_port_ranges": false,
+      "check_url_length": false,
+      "max_url_length": 8192,
+      "block_unicode_control_chars": false,
+      "validate_domain_format": false
+    },
+    "validation_rules": {
+      "require_valid_tld": false,
+      "check_dns_resolution": false,
+      "validate_certificate": false,
+      "check_response_headers": false,
+      "validate_content_type": false,
+      "check_file_size": false,
+      "validate_redirects": false,
+      "check_anchor_existence": false
+    },
+    "error_handling": {
+      "fail_on_security_violation": false,
+      "fail_on_timeout": false,
+      "fail_on_ssl_error": false,
+      "fail_on_dns_error": false,
+      "retry_attempts": 3,
+      "retry_delay": 1000
+    },
+    "reporting": {
+      "include_security_details": false,
+      "include_performance_metrics": true,
+      "include_redirect_chain": false,
+      "include_response_headers": false,
+      "verbose_errors": false
+    }
+  },
+  "test_scenarios": {
+    "should_pass": [
+      "https://example.com",
+      "http://example.com",
+      "ftp://example.com/file.txt",
+      "file:///tmp/test.txt",
+      "../relative/path.md",
+      "javascript:void(0)",
+      "https://192.168.1.1/admin",
+      "https://example.com/file.exe"
+    ],
+    "should_still_fail": [
+      "not-a-url",
+      "",
+      "://invalid"
+    ],
+    "should_timeout_gracefully": [
+      "https://httpbin.org/delay/35"
+    ],
+    "should_handle_many_redirects": [
+      "https://httpbin.org/redirect/15"
+    ]
+  },
+  "metadata": {
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["permissive", "development", "testing", "flexible", "lenient"],
+    "use_cases": [
+      "development_testing",
+      "internal_validation",
+      "legacy_system_support",
+      "debugging"
+    ]
+  }
+}

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample HTML Document for Link Testing</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .section { margin: 20px 0; }
+        .warning { color: red; font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1 id="main-title">Sample HTML Document for Link Testing</h1>
+    
+    <div class="section">
+        <h2 id="external-links">External Links</h2>
+        
+        <h3 id="valid-external">Valid External Links</h3>
+        <ul>
+            <li><a href="https://example.com">Example Website</a></li>
+            <li><a href="https://test.org">Test Organization</a></li>
+            <li><a href="https://demo.net">Demo Network</a></li>
+            <li><a href="https://secure.example.com">Secure Example</a></li>
+            <li><a href="https://api.example.com/v1/users">API Endpoint</a></li>
+            <li><a href="https://docs.example.com/guide/installation">Documentation</a></li>
+        </ul>
+        
+        <h3 id="external-with-params">External Links with Parameters</h3>
+        <ul>
+            <li><a href="https://example.com/search?q=test&amp;limit=10">Search Results</a></li>
+            <li><a href="https://api.service.com/users?page=1&amp;size=20&amp;sort=name">API with Parameters</a></li>
+            <li><a href="https://example.com/search?query=test%20data&amp;format=json">Complex Query</a></li>
+        </ul>
+        
+        <h3 id="external-with-fragments">External Links with Fragments</h3>
+        <ul>
+            <li><a href="https://docs.example.com/guide#installation">Documentation Section</a></li>
+            <li><a href="https://github.com/user/repo#readme">GitHub README</a></li>
+            <li><a href="https://example.com/page#top-section">Page Section</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2 id="internal-links">Internal Links</h2>
+        
+        <h3 id="relative-links">Relative Links</h3>
+        <ul>
+            <li><a href="./README.html">README File</a></li>
+            <li><a href="./docs/installation.html">Documentation</a></li>
+            <li><a href="./config/settings.html">Configuration Guide</a></li>
+            <li><a href="./tests/unit/example.test.html">Test Files</a></li>
+        </ul>
+        
+        <h3 id="absolute-internal">Absolute Internal Links</h3>
+        <ul>
+            <li><a href="/docs/readme.html">Root Documentation</a></li>
+            <li><a href="/config/app.html">Configuration</a></li>
+            <li><a href="/assets/styles.css">Assets</a></li>
+        </ul>
+        
+        <h3 id="parent-directory">Parent Directory Links</h3>
+        <ul>
+            <li><a href="../README.html">Parent README</a></li>
+            <li><a href="../other-project/docs.html">Sibling Project</a></li>
+            <li><a href="../../config.html">Root Config</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2 id="anchor-links">Anchor Links</h2>
+        
+        <h3 id="valid-anchors">Valid Anchors (exist in this document)</h3>
+        <ul>
+            <li><a href="#external-links">External Links Section</a></li>
+            <li><a href="#internal-links">Internal Links Section</a></li>
+            <li><a href="#anchor-links">Anchor Links Section</a></li>
+            <li><a href="#valid-external">Valid External Links</a></li>
+            <li><a href="#main-title">Main Title</a></li>
+        </ul>
+        
+        <h3 id="invalid-anchors">Invalid Anchors (don't exist in this document)</h3>
+        <ul>
+            <li><a href="#non-existent-section">Non-existent Section</a></li>
+            <li><a href="#missing-anchor">Missing Anchor</a></li>
+            <li><a href="#invalid-reference">Invalid Reference</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2 id="image-links">Image Links</h2>
+        
+        <h3 id="valid-images">Valid Image Links</h3>
+        <p>
+            <img src="https://example.com/images/sample.jpg" alt="Example Image">
+            <img src="./assets/logo.png" alt="Local Image">
+            <img src="../images/banner.gif" alt="Relative Image">
+        </p>
+        
+        <h3 id="images-with-links">Images as Links</h3>
+        <p>
+            <a href="https://example.com">
+                <img src="https://example.com/logo.png" alt="Clickable Logo">
+            </a>
+            <a href="./internal-page.html">
+                <img src="./images/internal-icon.png" alt="Internal Link Icon">
+            </a>
+        </p>
+    </div>
+    
+    <div class="section">
+        <h2 id="mixed-content">Mixed Content</h2>
+        <p>
+            Here's a paragraph with multiple link types: 
+            <a href="https://example.com">external link</a>, 
+            <a href="./docs/guide.html">internal link</a>, and 
+            <a href="#external-links">anchor link</a> all in one place.
+        </p>
+        
+        <h3 id="ordered-list">Ordered List with Various Links</h3>
+        <ol>
+            <li><a href="https://first.example.com">First external link</a></li>
+            <li><a href="https://second.example.com">Second external link</a></li>
+            <li><a href="./docs/api.html">Internal documentation</a></li>
+            <li><a href="#main-title">Anchor to top</a></li>
+        </ol>
+        
+        <h3 id="table-links">Table with Links</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>URL</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Main Site</td>
+                    <td><a href="https://example.com">https://example.com</a></td>
+                    <td>External</td>
+                </tr>
+                <tr>
+                    <td>API</td>
+                    <td><a href="https://api.example.com">https://api.example.com</a></td>
+                    <td>External</td>
+                </tr>
+                <tr>
+                    <td>Docs</td>
+                    <td><a href="./docs/readme.html">./docs/readme.html</a></td>
+                    <td>Internal</td>
+                </tr>
+                <tr>
+                    <td>Config</td>
+                    <td><a href="#configuration">Configuration Section</a></td>
+                    <td>Anchor</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2 id="problematic-links">Problematic Links for Testing</h2>
+        <p class="warning">Warning: The following links are intentionally broken or malicious for testing purposes.</p>
+        
+        <h3 id="broken-external">Broken External Links</h3>
+        <ul>
+            <li><a href="https://broken.example.com">Broken Link</a></li>
+            <li><a href="https://example.com/404-page">Not Found</a></li>
+            <li><a href="https://example.com/500-error">Server Error</a></li>
+        </ul>
+        
+        <h3 id="malformed-links">Malformed Links</h3>
+        <ul>
+            <li><a href="https://example.com/path with spaces">Spaces in URL</a></li>
+            <li><a href="https://example.com/path<script>">Invalid Characters</a></li>
+        </ul>
+        
+        <h3 id="security-test">Security Test Links</h3>
+        <ul>
+            <li><a href="javascript:alert('xss')">JavaScript Protocol</a></li>
+            <li><a href="data:text/html,<script>alert(1)</script>">Data URI</a></li>
+            <li><a href="ftp://example.com/file.txt">FTP Link</a></li>
+        </ul>
+        
+        <h3 id="path-traversal">Path Traversal Attempts</h3>
+        <ul>
+            <li><a href="../../../etc/passwd">Path Traversal</a></li>
+            <li><a href="..\\..\\..\\windows\\system32">Windows Path</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2 id="configuration">Configuration</h2>
+        <p>This section exists to test anchor links pointing to it.</p>
+        
+        <h3 id="settings">Settings</h3>
+        <ul>
+            <li>timeout: 30 seconds</li>
+            <li>max_redirects: 5</li>
+            <li>concurrent_requests: 10</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2 id="forms-and-buttons">Forms and Buttons</h2>
+        
+        <form action="https://example.com/submit" method="post">
+            <label for="url-input">URL Input:</label>
+            <input type="url" id="url-input" name="url" value="https://example.com">
+            <button type="submit">Submit</button>
+        </form>
+        
+        <p>
+            <button onclick="window.location.href='https://example.com'">Button Link</button>
+            <button onclick="window.open('./popup.html', '_blank')">Open Popup</button>
+        </p>
+    </div>
+    
+    <footer class="section">
+        <h2 id="footer">Footer</h2>
+        <p>End of test document. <a href="#main-title">Back to top</a></p>
+        <p class="warning">
+            <strong>Note:</strong> This document contains intentionally broken and malicious links for testing purposes. 
+            Do not use in production.
+        </p>
+    </footer>
+</body>
+</html>

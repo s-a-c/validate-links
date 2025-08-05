@@ -1,0 +1,90 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive collection of invalid URLs for testing validation and error handling",
+  "categories": {
+    "malformed_format": [
+      "not-a-url",
+      "invalid url with spaces",
+      "://missing-protocol",
+      "http://",
+      "https://",
+      "ftp://"
+    ],
+    "missing_protocol": [
+      "example.com",
+      "www.example.com",
+      "subdomain.example.com/path",
+      "example.com:8080/path"
+    ],
+    "invalid_characters": [
+      "http://exam ple.com",
+      "https://example.com/path with spaces",
+      "http://example.com/path<script>",
+      "https://example.com/path>alert",
+      "http://example.com/path\"quotes\"",
+      "https://example.com/path'single'quotes"
+    ],
+    "malformed_structure": [
+      "http:///example.com",
+      "https://example..com",
+      "http://.example.com",
+      "https://example.com.",
+      "http://example.com//double//slash",
+      "https://example.com:abc/invalid-port"
+    ],
+    "empty_or_null": [
+      "",
+      " ",
+      "\t",
+      "\n",
+      "   \t\n   "
+    ],
+    "special_characters": [
+      "http://example.com/path|pipe",
+      "https://example.com/path\\backslash",
+      "http://example.com/path{curly}",
+      "https://example.com/path[square]",
+      "http://example.com/path^caret"
+    ],
+    "invalid_domains": [
+      "http://-example.com",
+      "https://example-.com",
+      "http://ex..ample.com",
+      "https://.com",
+      "http://example.",
+      "https://256.256.256.256"
+    ],
+    "invalid_ports": [
+      "http://example.com:99999",
+      "https://example.com:-1",
+      "http://example.com:abc",
+      "https://example.com:0",
+      "http://example.com:65536"
+    ],
+    "path_issues": [
+      "http://example.com/path/../../../etc/passwd",
+      "https://example.com/path/./././file",
+      "http://example.com/path//multiple//slashes",
+      "https://example.com/path\\windows\\style"
+    ],
+    "query_issues": [
+      "http://example.com?param=value&",
+      "https://example.com?=value",
+      "http://example.com?param=",
+      "https://example.com?&param=value",
+      "http://example.com?param value=test"
+    ],
+    "fragment_issues": [
+      "http://example.com#",
+      "https://example.com##double",
+      "http://example.com#fragment with spaces",
+      "https://example.com#fragment<script>"
+    ]
+  },
+  "metadata": {
+    "total_urls": 52,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["invalid", "malformed", "testing", "validation", "error-handling"]
+  }
+}

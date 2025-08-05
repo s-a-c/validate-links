@@ -1,0 +1,186 @@
+{
+  "version": "1.0.0",
+  "description": "Custom validation configuration with specific rules for specialized testing scenarios",
+  "configuration": {
+    "scopes": ["EXTERNAL", "INTERNAL"],
+    "timeout": 15,
+    "max_redirects": 5,
+    "concurrent_requests": 8,
+    "cache_enabled": true,
+    "follow_redirects": true,
+    "user_agent": "validate-links-custom/1.0 (Testing Bot)",
+    "verify_ssl": true,
+    "security_checks": true,
+    "max_file_size": 52428800,
+    "excluded_domains": [
+      "test-blocked.com",
+      "internal-only.local",
+      "staging-blocked.dev"
+    ],
+    "included_domains": [
+      "allowed-external.com",
+      "trusted-partner.org",
+      "api-whitelist.net"
+    ],
+    "blocked_protocols": [
+      "javascript",
+      "data",
+      "vbscript"
+    ],
+    "allowed_protocols": [
+      "http",
+      "https",
+      "ftp"
+    ],
+    "blocked_file_extensions": [
+      ".exe",
+      ".bat",
+      ".cmd",
+      ".vbs",
+      ".jar"
+    ],
+    "allowed_file_extensions": [
+      ".html",
+      ".htm",
+      ".md",
+      ".txt",
+      ".pdf",
+      ".doc",
+      ".docx",
+      ".xls",
+      ".xlsx",
+      ".ppt",
+      ".pptx",
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".svg",
+      ".css",
+      ".js",
+      ".json",
+      ".xml",
+      ".zip",
+      ".tar",
+      ".gz"
+    ],
+    "security_rules": {
+      "block_path_traversal": true,
+      "block_suspicious_patterns": true,
+      "validate_encoding": true,
+      "check_homograph_attacks": false,
+      "block_private_ips": false,
+      "validate_port_ranges": true,
+      "check_url_length": true,
+      "max_url_length": 4096,
+      "block_unicode_control_chars": true,
+      "validate_domain_format": true,
+      "allowed_ports": [80, 443, 8080, 8443, 3000, 5000],
+      "blocked_ports": [22, 23, 135, 139, 445, 1433, 3389, 5432]
+    },
+    "validation_rules": {
+      "require_valid_tld": true,
+      "check_dns_resolution": false,
+      "validate_certificate": true,
+      "check_response_headers": true,
+      "validate_content_type": true,
+      "check_file_size": true,
+      "validate_redirects": true,
+      "check_anchor_existence": true,
+      "allowed_content_types": [
+        "text/html",
+        "text/plain",
+        "text/markdown",
+        "application/json",
+        "application/xml",
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/svg+xml"
+      ],
+      "blocked_content_types": [
+        "application/octet-stream",
+        "application/x-executable",
+        "application/x-msdownload"
+      ]
+    },
+    "error_handling": {
+      "fail_on_security_violation": true,
+      "fail_on_timeout": false,
+      "fail_on_ssl_error": true,
+      "fail_on_dns_error": false,
+      "retry_attempts": 2,
+      "retry_delay": 500,
+      "retry_on_status_codes": [500, 502, 503, 504],
+      "ignore_status_codes": [429]
+    },
+    "reporting": {
+      "include_security_details": true,
+      "include_performance_metrics": true,
+      "include_redirect_chain": true,
+      "include_response_headers": false,
+      "verbose_errors": true,
+      "group_by_domain": true,
+      "include_statistics": true
+    },
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_second": 10,
+      "burst_limit": 20,
+      "delay_between_requests": 100
+    },
+    "custom_headers": {
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Accept-Encoding": "gzip, deflate",
+      "DNT": "1",
+      "Connection": "keep-alive",
+      "Upgrade-Insecure-Requests": "1"
+    }
+  },
+  "test_scenarios": {
+    "should_pass": [
+      "https://allowed-external.com/page",
+      "https://trusted-partner.org/api/v1",
+      "https://example.com:8080/app",
+      "./docs/readme.md",
+      "#section-anchor"
+    ],
+    "should_fail_domain_blocked": [
+      "https://test-blocked.com/page",
+      "https://internal-only.local/admin"
+    ],
+    "should_fail_protocol_blocked": [
+      "javascript:alert('test')",
+      "data:text/html,<script>alert(1)</script>"
+    ],
+    "should_fail_file_extension": [
+      "https://example.com/download/file.exe",
+      "https://example.com/scripts/malware.bat"
+    ],
+    "should_fail_port_blocked": [
+      "https://example.com:22/ssh",
+      "https://example.com:3389/rdp"
+    ],
+    "should_retry": [
+      "https://httpbin.org/status/500",
+      "https://httpbin.org/status/502"
+    ],
+    "should_ignore": [
+      "https://httpbin.org/status/429"
+    ]
+  },
+  "metadata": {
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["custom", "specialized", "balanced", "configurable", "testing"],
+    "use_cases": [
+      "custom_validation_rules",
+      "specialized_testing",
+      "enterprise_environments",
+      "api_testing",
+      "content_validation"
+    ]
+  }
+}

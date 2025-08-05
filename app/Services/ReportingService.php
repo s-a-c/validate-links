@@ -17,11 +17,22 @@ use Exception;
 use InvalidArgumentException;
 use Override;
 
-final class ReportingService implements ReportingInterface
+/**
+ * Service for generating and managing validation reports in multiple formats.
+ *
+ * This service provides comprehensive reporting capabilities including format
+ * management, report generation, export functionality, and summary statistics.
+ */
+class ReportingService implements ReportingInterface
 {
-    /** @var array<string, object> */
+    /**
+     * @var array<string, object> Registered formatters indexed by format value
+     */
     private array $formatters;
 
+    /**
+     * Initialize the reporting service with default formatters.
+     */
     public function __construct()
     {
         $this->formatters = [
@@ -33,7 +44,12 @@ final class ReportingService implements ReportingInterface
     }
 
     /**
-     * Generate report from validation results.
+     * Generate a formatted report from validation results.
+     *
+     * @param ValidationResultCollection $results Collection of validation results
+     * @param OutputFormat $format Desired output format
+     * @return string Formatted report content
+     * @throws InvalidArgumentException If format is unsupported or formatter is invalid
      */
     public function generateReport(ValidationResultCollection $results, OutputFormat $format = OutputFormat::CONSOLE): string
     {
@@ -57,7 +73,10 @@ final class ReportingService implements ReportingInterface
     }
 
     /**
-     * Add formatter for specific output format.
+     * Register a custom formatter for a specific output format.
+     *
+     * @param OutputFormat $format The output format to register
+     * @param object $formatter The formatter instance (must have format() method)
      */
     public function addFormatter(OutputFormat $format, object $formatter): void
     {
@@ -65,7 +84,12 @@ final class ReportingService implements ReportingInterface
     }
 
     /**
-     * Export report to file.
+     * Export a validation report to a file.
+     *
+     * @param ValidationResultCollection $results Validation results to export
+     * @param string $filePath Target file path for export
+     * @param OutputFormat|null $format Output format (defaults to JSON)
+     * @return bool True if export was successful, false otherwise
      */
     public function exportReport(ValidationResultCollection $results, string $filePath, ?OutputFormat $format = null): bool
     {
@@ -89,6 +113,11 @@ final class ReportingService implements ReportingInterface
 
     /**
      * Format validation results with specific options.
+     *
+     * @param ValidationResultCollection $results Results to format
+     * @param OutputFormat $format Desired output format
+     * @param array<string, mixed> $options Formatting options (currently unused)
+     * @return string Formatted output
      */
     public function format(ValidationResultCollection $results, OutputFormat $format, array $options = []): string
     {
@@ -96,7 +125,9 @@ final class ReportingService implements ReportingInterface
     }
 
     /**
-     * Get available output formats.
+     * Get all available output formats.
+     *
+     * @return OutputFormat[] Array of supported output formats
      */
     public function getAvailableFormats(): array
     {
@@ -104,7 +135,10 @@ final class ReportingService implements ReportingInterface
     }
 
     /**
-     * Check if format is supported.
+     * Check if a specific output format is supported.
+     *
+     * @param OutputFormat $format Format to check
+     * @return bool True if format is supported
      */
     public function supportsFormat(OutputFormat $format): bool
     {
@@ -112,7 +146,11 @@ final class ReportingService implements ReportingInterface
     }
 
     /**
-     * Get formatter instance for specific format.
+     * Get the formatter instance for a specific format.
+     *
+     * @param OutputFormat $format The format to get formatter for
+     * @return object The formatter instance
+     * @throws InvalidArgumentException If format is unsupported or formatter not found
      */
     public function getFormatter(OutputFormat $format): object
     {
@@ -120,7 +158,12 @@ final class ReportingService implements ReportingInterface
             throw new InvalidArgumentException("Unsupported format: {$format->value}");
         }
 
-        return $this->formatters[$format->value];
+        $formatter = $this->formatters[$format->value] ?? null;
+        if ($formatter === null) {
+            throw new InvalidArgumentException("Formatter not found for format: {$format->value}");
+        }
+
+        return $formatter;
     }
 
     /**

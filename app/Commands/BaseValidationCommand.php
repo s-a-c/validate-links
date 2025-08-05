@@ -114,7 +114,7 @@ abstract class BaseValidationCommand extends Command
                 $this->error("Invalid scope: {$scopeOption}");
                 $this->info('Valid scopes: '.implode(', ', ValidationScope::values()));
                 $this->info('Use "all" for comprehensive validation');
-                exit(1);
+                throw new \InvalidArgumentException("Invalid scope: {$scopeOption}");
             }
         }
 
@@ -124,7 +124,7 @@ abstract class BaseValidationCommand extends Command
             if ($formatOption !== null && is_string($formatOption) && ! OutputFormat::isValid($formatOption)) {
                 $this->error("Invalid format: {$formatOption}");
                 $this->info('Valid formats: '.implode(', ', OutputFormat::values()));
-                exit(1);
+                throw new \InvalidArgumentException("Invalid format: {$formatOption}");
             }
         }
     }

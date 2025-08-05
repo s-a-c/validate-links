@@ -41,10 +41,14 @@ final readonly class ConcurrentValidationService
         $pool = new Pool($this->httpClient, $requests, [
             'concurrency' => $this->concurrency,
             'fulfilled' => function (ResponseInterface $response, $index) use (&$results, $links): void {
-                $results[$index] = $this->processSuccessfulResponse($response, $links[$index]);
+                if (isset($links[$index])) {
+                    $results[$index] = $this->processSuccessfulResponse($response, $links[$index]);
+                }
             },
             'rejected' => function ($reason, $index) use (&$results, $links): void {
-                $results[$index] = $this->processFailedResponse($reason, $links[$index]);
+                if (isset($links[$index])) {
+                    $results[$index] = $this->processFailedResponse($reason, $links[$index]);
+                }
             },
         ]);
 

@@ -1,0 +1,379 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive collection of HTTP response scenarios for testing",
+  "response_categories": {
+    "success_responses": {
+      "200_ok": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Type": "text/html; charset=utf-8",
+          "Server": "nginx/1.18.0",
+          "Cache-Control": "public, max-age=3600",
+          "Content-Length": "1024",
+          "Last-Modified": "Wed, 01 Jan 2025 00:00:00 GMT",
+          "ETag": "\"abc123\""
+        },
+        "body": "<!DOCTYPE html><html><head><title>Success</title></head><body><h1>Page Found</h1><p>This is a successful response.</p></body></html>",
+        "response_time": 150
+      },
+      "200_json": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Type": "application/json",
+          "Server": "nginx/1.18.0",
+          "Cache-Control": "no-cache",
+          "Content-Length": "256"
+        },
+        "body": "{\"status\": \"success\", \"message\": \"Data retrieved successfully\", \"data\": {\"id\": 1, \"name\": \"Test Item\"}}",
+        "response_time": 75
+      },
+      "200_xml": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Type": "application/xml",
+          "Server": "Apache/2.4.41",
+          "Cache-Control": "public, max-age=1800"
+        },
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><status>success</status><data><item id=\"1\">Test Item</item></data></response>",
+        "response_time": 200
+      },
+      "201_created": {
+        "status_code": 201,
+        "reason_phrase": "Created",
+        "headers": {
+          "Content-Type": "application/json",
+          "Location": "https://api.example.com/items/123",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "{\"id\": 123, \"status\": \"created\", \"message\": \"Resource created successfully\"}",
+        "response_time": 300
+      },
+      "202_accepted": {
+        "status_code": 202,
+        "reason_phrase": "Accepted",
+        "headers": {
+          "Content-Type": "application/json",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "{\"status\": \"accepted\", \"message\": \"Request accepted for processing\"}",
+        "response_time": 100
+      },
+      "204_no_content": {
+        "status_code": 204,
+        "reason_phrase": "No Content",
+        "headers": {
+          "Server": "nginx/1.18.0",
+          "Cache-Control": "no-cache"
+        },
+        "body": "",
+        "response_time": 50
+      }
+    },
+    "redirect_responses": {
+      "301_moved_permanently": {
+        "status_code": 301,
+        "reason_phrase": "Moved Permanently",
+        "headers": {
+          "Location": "https://example.com/new-location",
+          "Server": "nginx/1.18.0",
+          "Cache-Control": "public, max-age=31536000"
+        },
+        "body": "<!DOCTYPE html><html><head><title>301 Moved Permanently</title></head><body><h1>Moved Permanently</h1><p>The document has moved <a href=\"https://example.com/new-location\">here</a>.</p></body></html>",
+        "response_time": 80
+      },
+      "302_found": {
+        "status_code": 302,
+        "reason_phrase": "Found",
+        "headers": {
+          "Location": "https://example.com/temporary-location",
+          "Server": "nginx/1.18.0",
+          "Cache-Control": "no-cache"
+        },
+        "body": "<!DOCTYPE html><html><head><title>302 Found</title></head><body><h1>Found</h1><p>The document has moved <a href=\"https://example.com/temporary-location\">here</a>.</p></body></html>",
+        "response_time": 90
+      },
+      "307_temporary_redirect": {
+        "status_code": 307,
+        "reason_phrase": "Temporary Redirect",
+        "headers": {
+          "Location": "https://api.example.com/v2/endpoint",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "",
+        "response_time": 60
+      },
+      "308_permanent_redirect": {
+        "status_code": 308,
+        "reason_phrase": "Permanent Redirect",
+        "headers": {
+          "Location": "https://api.example.com/v3/endpoint",
+          "Server": "nginx/1.18.0",
+          "Cache-Control": "public, max-age=31536000"
+        },
+        "body": "",
+        "response_time": 70
+      }
+    },
+    "client_error_responses": {
+      "400_bad_request": {
+        "status_code": 400,
+        "reason_phrase": "Bad Request",
+        "headers": {
+          "Content-Type": "application/json",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "{\"error\": \"bad_request\", \"message\": \"The request could not be understood by the server\"}",
+        "response_time": 120
+      },
+      "401_unauthorized": {
+        "status_code": 401,
+        "reason_phrase": "Unauthorized",
+        "headers": {
+          "Content-Type": "text/html",
+          "WWW-Authenticate": "Basic realm=\"Restricted Area\"",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>401 Unauthorized</title></head><body><h1>Unauthorized</h1><p>Authentication required.</p></body></html>",
+        "response_time": 100
+      },
+      "403_forbidden": {
+        "status_code": 403,
+        "reason_phrase": "Forbidden",
+        "headers": {
+          "Content-Type": "text/html",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>Forbidden</h1><p>You don't have permission to access this resource.</p></body></html>",
+        "response_time": 110
+      },
+      "404_not_found": {
+        "status_code": 404,
+        "reason_phrase": "Not Found",
+        "headers": {
+          "Content-Type": "text/html",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested resource could not be found.</p></body></html>",
+        "response_time": 95
+      },
+      "405_method_not_allowed": {
+        "status_code": 405,
+        "reason_phrase": "Method Not Allowed",
+        "headers": {
+          "Content-Type": "application/json",
+          "Allow": "GET, POST",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "{\"error\": \"method_not_allowed\", \"message\": \"The request method is not allowed for this resource\"}",
+        "response_time": 85
+      },
+      "408_request_timeout": {
+        "status_code": 408,
+        "reason_phrase": "Request Timeout",
+        "headers": {
+          "Content-Type": "text/html",
+          "Connection": "close",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>408 Request Timeout</title></head><body><h1>Request Timeout</h1><p>The server timed out waiting for the request.</p></body></html>",
+        "response_time": 30000
+      },
+      "429_too_many_requests": {
+        "status_code": 429,
+        "reason_phrase": "Too Many Requests",
+        "headers": {
+          "Content-Type": "application/json",
+          "Retry-After": "60",
+          "X-RateLimit-Limit": "100",
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": "1640995200",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "{\"error\": \"rate_limit_exceeded\", \"message\": \"Too many requests. Please try again later.\"}",
+        "response_time": 50
+      }
+    },
+    "server_error_responses": {
+      "500_internal_server_error": {
+        "status_code": 500,
+        "reason_phrase": "Internal Server Error",
+        "headers": {
+          "Content-Type": "text/html",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>500 Internal Server Error</title></head><body><h1>Internal Server Error</h1><p>The server encountered an unexpected condition.</p></body></html>",
+        "response_time": 5000
+      },
+      "502_bad_gateway": {
+        "status_code": 502,
+        "reason_phrase": "Bad Gateway",
+        "headers": {
+          "Content-Type": "text/html",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>502 Bad Gateway</title></head><body><h1>Bad Gateway</h1><p>The server received an invalid response from the upstream server.</p></body></html>",
+        "response_time": 10000
+      },
+      "503_service_unavailable": {
+        "status_code": 503,
+        "reason_phrase": "Service Unavailable",
+        "headers": {
+          "Content-Type": "text/html",
+          "Retry-After": "120",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>503 Service Unavailable</title></head><body><h1>Service Unavailable</h1><p>The server is temporarily unable to service your request.</p></body></html>",
+        "response_time": 1000
+      },
+      "504_gateway_timeout": {
+        "status_code": 504,
+        "reason_phrase": "Gateway Timeout",
+        "headers": {
+          "Content-Type": "text/html",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>504 Gateway Timeout</title></head><body><h1>Gateway Timeout</h1><p>The server did not receive a timely response from the upstream server.</p></body></html>",
+        "response_time": 30000
+      }
+    },
+    "special_responses": {
+      "large_response": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Type": "text/html",
+          "Content-Length": "10485760",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>Large Response</title></head><body>" + "<!-- Large content block -->".repeat(100000) + "</body></html>",
+        "response_time": 2000
+      },
+      "slow_response": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Type": "text/html",
+          "X-Response-Time": "5000ms",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>Slow Response</title></head><body><h1>This response was intentionally slow</h1></body></html>",
+        "response_time": 5000
+      },
+      "empty_response": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Length": "0",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "",
+        "response_time": 25
+      },
+      "malformed_headers": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Type": "text/html",
+          "Invalid-Header": "value\nwith\nnewlines",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "<!DOCTYPE html><html><head><title>Malformed Headers</title></head><body><h1>Response with malformed headers</h1></body></html>",
+        "response_time": 100
+      },
+      "binary_response": {
+        "status_code": 200,
+        "reason_phrase": "OK",
+        "headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Disposition": "attachment; filename=\"test.bin\"",
+          "Content-Length": "1024",
+          "Server": "nginx/1.18.0"
+        },
+        "body": "binary_data_placeholder",
+        "response_time": 200
+      }
+    }
+  },
+  "error_scenarios": {
+    "connection_errors": {
+      "connection_refused": {
+        "error_type": "ConnectException",
+        "message": "Connection refused",
+        "curl_error": "cURL error 7: Failed to connect to host"
+      },
+      "dns_resolution_failed": {
+        "error_type": "ConnectException",
+        "message": "Could not resolve host",
+        "curl_error": "cURL error 6: Could not resolve host"
+      },
+      "ssl_handshake_failed": {
+        "error_type": "RequestException",
+        "message": "SSL handshake failed",
+        "curl_error": "cURL error 35: SSL connect error"
+      },
+      "timeout": {
+        "error_type": "RequestException",
+        "message": "Operation timed out",
+        "curl_error": "cURL error 28: Operation timed out after 30000 milliseconds"
+      },
+      "network_unreachable": {
+        "error_type": "ConnectException",
+        "message": "Network is unreachable",
+        "curl_error": "cURL error 7: Network is unreachable"
+      }
+    },
+    "ssl_errors": {
+      "certificate_verify_failed": {
+        "error_type": "RequestException",
+        "message": "SSL certificate problem: certificate verify failed",
+        "curl_error": "cURL error 60: SSL certificate problem: certificate verify failed"
+      },
+      "self_signed_certificate": {
+        "error_type": "RequestException",
+        "message": "SSL certificate problem: self signed certificate",
+        "curl_error": "cURL error 60: SSL certificate problem: self signed certificate"
+      },
+      "certificate_expired": {
+        "error_type": "RequestException",
+        "message": "SSL certificate problem: certificate has expired",
+        "curl_error": "cURL error 60: SSL certificate problem: certificate has expired"
+      }
+    }
+  },
+  "test_scenarios": {
+    "successful_validation": {
+      "description": "URLs that should validate successfully",
+      "responses": ["200_ok", "200_json", "201_created", "204_no_content"]
+    },
+    "redirect_handling": {
+      "description": "URLs that test redirect following",
+      "responses": ["301_moved_permanently", "302_found", "307_temporary_redirect", "308_permanent_redirect"]
+    },
+    "client_errors": {
+      "description": "URLs that return client error responses",
+      "responses": ["400_bad_request", "401_unauthorized", "403_forbidden", "404_not_found", "405_method_not_allowed", "429_too_many_requests"]
+    },
+    "server_errors": {
+      "description": "URLs that return server error responses",
+      "responses": ["500_internal_server_error", "502_bad_gateway", "503_service_unavailable", "504_gateway_timeout"]
+    },
+    "performance_testing": {
+      "description": "URLs for testing performance and timeouts",
+      "responses": ["slow_response", "large_response", "timeout"]
+    },
+    "edge_cases": {
+      "description": "URLs for testing edge cases and error handling",
+      "responses": ["empty_response", "malformed_headers", "binary_response"]
+    }
+  },
+  "metadata": {
+    "total_responses": 32,
+    "total_errors": 8,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["http", "responses", "testing", "mocking", "deterministic"]
+  }
+}

@@ -6,10 +6,19 @@ namespace App\Services\ValueObjects;
 
 use InvalidArgumentException;
 
+/**
+ * Value object representing a batch of links to be validated together.
+ *
+ * This class groups links with their validation configuration and metadata
+ * for efficient batch processing during concurrent validation operations.
+ */
 final readonly class ValidationBatch
 {
     /**
-     * @param  LinkExtractionResult[]  $links
+     * @param LinkExtractionResult[] $links Array of links to validate in this batch
+     * @param ValidationConfig $config Configuration for validation processing
+     * @param int $batchId Unique identifier for this batch
+     * @param int $priority Processing priority (higher numbers = higher priority)
      */
     public function __construct(
         public array $links,
@@ -52,13 +61,20 @@ final readonly class ValidationBatch
         );
     }
 
+    /**
+     * Get the number of links in this batch.
+     *
+     * @return int Number of links to be validated
+     */
     public function getLinkCount(): int
     {
         return count($this->links);
     }
 
     /**
-     * @return string[]
+     * Extract all URLs from the links in this batch.
+     *
+     * @return string[] Array of URLs to be validated
      */
     public function getUrls(): array
     {
@@ -79,6 +95,11 @@ final readonly class ValidationBatch
         ];
     }
 
+    /**
+     * Validate the batch data for consistency and completeness.
+     *
+     * @throws InvalidArgumentException If batch is empty, contains invalid links, or has invalid ID
+     */
     private function validate(): void
     {
         if (empty($this->links)) {

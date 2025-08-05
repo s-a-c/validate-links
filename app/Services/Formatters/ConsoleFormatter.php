@@ -6,12 +6,20 @@ namespace App\Services\Formatters;
 
 use App\Services\ValueObjects\ValidationResult;
 
-final class ConsoleFormatter
+/**
+ * Console formatter for validation results with colored output and emoji icons.
+ *
+ * This formatter provides human-readable console output with color coding,
+ * emoji icons, and structured sections for easy reading in terminal environments.
+ */
+class ConsoleFormatter
 {
     /**
-     * Format validation result for console output.
+     * Format validation result for console output with colors and emojis.
      *
-     * @param  array<string, mixed>  $statistics
+     * @param ValidationResult $result The validation result to format
+     * @param array<string, mixed> $statistics Additional statistics data
+     * @return string Formatted console output with ANSI color codes
      */
     public function format(ValidationResult $result, array $statistics): string
     {
@@ -34,6 +42,12 @@ final class ConsoleFormatter
         return implode("\n\n", $output);
     }
 
+    /**
+     * Format the header section with status indicator.
+     *
+     * @param ValidationResult $result The validation result
+     * @return string Colored header with status
+     */
     private function formatHeader(ValidationResult $result): string
     {
         $status = $result->isSuccessful() ? '✅ PASSED' : '❌ FAILED';
@@ -43,7 +57,10 @@ final class ConsoleFormatter
     }
 
     /**
-     * @param  array<string, mixed>  $summary
+     * Format the validation summary section.
+     *
+     * @param array<string, mixed> $summary Summary data from validation result
+     * @return string Formatted summary with emoji icons
      */
     private function formatSummary(array $summary): string
     {
@@ -71,7 +88,10 @@ final class ConsoleFormatter
     }
 
     /**
-     * @param  array<mixed>  $broken
+     * Format the broken links details section.
+     *
+     * @param array<array{url: string, file: string, reason: string}> $broken Array of broken link data
+     * @return string Formatted broken links section
      */
     private function formatBrokenLinks(array $broken): string
     {
@@ -94,7 +114,10 @@ final class ConsoleFormatter
     }
 
     /**
-     * @param  array<string, mixed>  $statistics
+     * Format the detailed statistics section.
+     *
+     * @param array<string, mixed> $statistics Statistics data to display
+     * @return string Formatted statistics section
      */
     private function formatStatistics(array $statistics): string
     {

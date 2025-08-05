@@ -9,7 +9,7 @@ use LaravelZero\Framework\Commands\Command;
 
 use function Termwind\render;
 
-final class InspireCommand extends Command
+class InspireCommand extends Command
 {
     /**
      * The signature of the command.

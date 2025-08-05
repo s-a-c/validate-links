@@ -27,6 +27,8 @@ abstract class ValidateLinksException extends Exception
      */
     public function __construct(string $message = '', int $code = 0, ?Throwable $previous = null, /**
      * Additional context data for the exception.
+     *
+     * @var array<string, mixed>
      */
         protected array $context = [])
     {
@@ -60,7 +62,16 @@ abstract class ValidateLinksException extends Exception
         // Note: Cannot directly assign to Exception properties as they are readonly in PHP 8+
         // This method exists for interface compliance but has limitations
         $context = $data['context'] ?? [];
-        $this->context = is_array($context) ? $context : [];
+        if (is_array($context)) {
+            // Ensure all keys are strings and values are mixed (which is acceptable for array<string, mixed>)
+            $typedContext = [];
+            foreach ($context as $key => $value) {
+                $typedContext[(string) $key] = $value;
+            }
+            $this->context = $typedContext;
+        } else {
+            $this->context = [];
+        }
 
         if (isset($data['previous']) && $data['previous'] instanceof Throwable) {
             $this->previous = $data['previous'];

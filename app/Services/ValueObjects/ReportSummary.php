@@ -8,10 +8,21 @@ use App\Enums\LinkStatus;
 use InvalidArgumentException;
 use ValueError;
 
+/**
+ * Value object representing a comprehensive summary of validation results.
+ *
+ * This class provides aggregated statistics and metrics for validation
+ * operations including counts, rates, and performance data.
+ */
 final readonly class ReportSummary
 {
     /**
-     * @param  array<string, int>  $statusBreakdown  Array with LinkStatus values as keys
+     * @param int $totalLinks Total number of links validated
+     * @param int $brokenLinks Number of broken/invalid links found
+     * @param float $successRate Success rate as a percentage (0.0-100.0)
+     * @param array<string, int> $statusBreakdown Breakdown by LinkStatus values
+     * @param float $executionTime Total execution time in seconds
+     * @param int $filesProcessed Number of files processed during validation
      */
     public function __construct(
         public int $totalLinks,
@@ -62,26 +73,51 @@ final readonly class ReportSummary
         );
     }
 
+    /**
+     * Get the number of valid links.
+     *
+     * @return int Number of valid links (total - broken)
+     */
     public function getValidLinks(): int
     {
         return $this->totalLinks - $this->brokenLinks;
     }
 
+    /**
+     * Get the total number of links validated.
+     *
+     * @return int Total link count
+     */
     public function getTotalLinks(): int
     {
         return $this->totalLinks;
     }
 
+    /**
+     * Get the number of broken links found.
+     *
+     * @return int Broken link count
+     */
     public function getBrokenLinks(): int
     {
         return $this->brokenLinks;
     }
 
+    /**
+     * Get the validation success rate.
+     *
+     * @return float Success rate as percentage (0.0-100.0)
+     */
     public function getSuccessRate(): float
     {
         return $this->successRate;
     }
 
+    /**
+     * Check if any validation errors were found.
+     *
+     * @return bool True if broken links were found
+     */
     public function hasErrors(): bool
     {
         return $this->brokenLinks > 0;
@@ -102,6 +138,11 @@ final readonly class ReportSummary
         ];
     }
 
+    /**
+     * Validate the report summary data for consistency.
+     *
+     * @throws InvalidArgumentException If any values are invalid or inconsistent
+     */
     private function validate(): void
     {
         if ($this->totalLinks < 0) {

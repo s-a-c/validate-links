@@ -17,9 +17,6 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
     /**
      * @param  array<ValidationResult>  $results
      */
-    /**
-     * @param  array<ValidationResult>  $results
-     */
     public function __construct(
         private array $results = [],
     ) {
@@ -31,6 +28,24 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
                 );
             }
         }
+    }
+
+    /**
+     * Create a new ValidationResultCollection with the given results.
+     *
+     * @param  array<ValidationResult>  $results
+     */
+    public static function create(array $results = []): self
+    {
+        return new self($results);
+    }
+
+    /**
+     * Create an empty ValidationResultCollection.
+     */
+    public static function empty(): self
+    {
+        return new self([]);
     }
 
     /**
@@ -98,7 +113,7 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
      */
     public function getIterator(): ArrayIterator
     {
-        return new ArrayIterator($this->results);
+        return new ArrayIterator(array_values($this->results));
     }
 
     /**

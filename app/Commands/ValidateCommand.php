@@ -26,11 +26,10 @@ use function Laravel\Prompts\progress;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
-final class ValidateCommand extends BaseValidationCommand
+class ValidateCommand extends BaseValidationCommand
 {
-    public LinkValidationInterface $linkValidationService;
-
-    public ReportingInterface $reportingService;
+    // These properties are initialized in the parent constructor
+    // Remove public declarations as they're already handled by parent
 
     /**
      * The signature of the command.
@@ -434,7 +433,7 @@ final class ValidateCommand extends BaseValidationCommand
                     'concurrent_requests' => 10,
                 ]);
 
-                $fileResults = $this->linkValidationService->validateFile($file, $config);
+                $fileResults = $this->linkValidation->validateFile($file, $config);
 
                 // Add ValidationResult objects to collection
                 $allResults = array_merge($allResults, $fileResults->toValidationResultArray());
@@ -455,21 +454,22 @@ final class ValidateCommand extends BaseValidationCommand
         $resultsCollection = new ValidationResultCollection($allResults);
 
         // Generate and display/save report
-        $format = $outputConfig['format'] instanceof OutputFormat
-            ? $outputConfig['format']
-            : OutputFormat::from(is_string($outputConfig['format']) ? $outputConfig['format'] : 'console');
-        $report = $this->reportingService->generateReport($resultsCollection, $format);
+        $formatValue = $outputConfig['format'] ?? 'console';
+        $format = $formatValue instanceof OutputFormat
+            ? $formatValue
+            : OutputFormat::from(is_string($formatValue) ? $formatValue : 'console');
+        $report = $this->reporting->generateReport($resultsCollection, $format);
 
-        if ($outputConfig['file']) {
+        if (isset($outputConfig['file']) && $outputConfig['file']) {
             $filePath = is_string($outputConfig['file']) ? $outputConfig['file'] : '';
-            $this->reportingService->saveReport($report, $filePath);
+            $this->reporting->saveReport($report, $filePath);
             $this->info("Report saved to: {$filePath}");
         } else {
             $this->line($report);
         }
 
         // Show summary
-        $summary = $this->reportingService->generateSummary($resultsCollection);
+        $summary = $this->reporting->generateSummary($resultsCollection);
         $this->displaySummary($summary);
 
         return $summary->brokenLinks > 0 ? self::FAILURE : self::SUCCESS;
@@ -562,21 +562,25 @@ final class ValidateCommand extends BaseValidationCommand
         $scope = ValidationScope::from($scopeString ?? 'all');
         $format = OutputFormat::from($formatString ?? 'console');
 
-        return $this->performValidation($paths[0] ?? './docs', $scope, $format, $outputFile, $concurrent, $timeout);
+        return $this->performValidation($paths, $scope, $format, $outputFile, $concurrent, $timeout);
     }
 
     /**
      * Perform the actual validation.
+     *
+     * @param array<string> $paths
      */
     private function performValidation(
-        string $path,
+        array $paths,
         ValidationScope $scope,
         OutputFormat $format,
         ?string $outputFile,
         int $concurrent,
         int $timeout
     ): int {
-        $this->info("🔍 Validating links in: {$path}");
+        // Display validation info for all paths
+        $pathsDisplay = implode(', ', $paths);
+        $this->info("🔍 Validating links in: {$pathsDisplay}");
         $this->info("📋 Scope: {$scope->value}");
         $this->info("📄 Format: {$format->value}");
 
@@ -594,8 +598,19 @@ final class ValidateCommand extends BaseValidationCommand
                 'timeout' => $timeout,
             ]);
 
-            // Perform validation
-            $results = $this->linkValidation->validateFile($path, $config);
+            // Collect all files from all paths (handles both files and directories)
+            $allResults = [];
+            foreach ($paths as $path) {
+                $files = $this->getFilesFromPath($path);
+                
+                foreach ($files as $file) {
+                    $fileResults = $this->linkValidation->validateFile($file, $config);
+                    $allResults = array_merge($allResults, $fileResults->toValidationResultArray());
+                }
+            }
+
+            // Create ValidationResultCollection from all results
+            $results = new ValidationResultCollection($allResults);
 
             // Generate and display report
             $report = $this->reporting->generateReport($results, $format);

@@ -51,6 +51,7 @@ final readonly class ValidationConfig
             }
         }
 
+        // Always ensure ALL scope is present when no valid scopes
         if ($validatedScopes === []) {
             $validatedScopes = [ValidationScope::ALL];
         }

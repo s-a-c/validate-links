@@ -6,8 +6,20 @@ namespace App\Services\Formatters;
 
 use App\Services\ValueObjects\ValidationResult;
 
-final class HtmlFormatter
+/**
+ * HTML formatter for validation results with styled web output.
+ *
+ * This formatter generates complete HTML documents with embedded CSS
+ * for web-based viewing and sharing of validation reports.
+ */
+class HtmlFormatter
 {
+    /**
+     * Format validation result as a complete HTML document.
+     *
+     * @param ValidationResult $result The validation result to format
+     * @return string Complete HTML document with embedded styles
+     */
     public function format(ValidationResult $result): string
     {
         $html = $this->getHtmlTemplate();
@@ -16,6 +28,12 @@ final class HtmlFormatter
         return str_replace('{{CONTENT}}', $content, $html);
     }
 
+    /**
+     * Generate the main content section of the HTML report.
+     *
+     * @param ValidationResult $result The validation result to format
+     * @return string HTML content with validation details
+     */
     private function generateContent(ValidationResult $result): string
     {
         $content = [];
@@ -99,6 +117,11 @@ final class HtmlFormatter
         return implode("\n", $content);
     }
 
+    /**
+     * Get the complete HTML template with embedded CSS.
+     *
+     * @return string Complete HTML template with placeholder for content
+     */
     private function getHtmlTemplate(): string
     {
         return <<<'HTML'

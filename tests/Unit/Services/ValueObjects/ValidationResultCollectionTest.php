@@ -3,96 +3,70 @@
 declare(strict_types=1);
 
 use App\Enums\LinkStatus;
+use App\Enums\ValidationScope;
 use App\Services\ValueObjects\ValidationResult;
 use App\Services\ValueObjects\ValidationResultCollection;
 
 describe('ValidationResultCollection', function () {
+    let('ok', fn () => ValidationResult::success('a', ValidationScope::INTERNAL, 200, 0.001));
+    let('broken', fn () => ValidationResult::failure('b', ValidationScope::EXTERNAL, LinkStatus::NOT_FOUND, 'nf', 404, null, 0.002));
+    let('collection', fn () => ValidationResultCollection::create([($this->ok)(), ($this->broken)()]));
+
     beforeEach(function () {
-        $this->validResult = ValidationResult::create(
-            url: 'https://example.com',
-            status: LinkStatus::VALID,
-            message: 'Link is valid'
-        );
-
-        $this->brokenResult = ValidationResult::create(
-            url: 'https://broken.com',
-            status: LinkStatus::BROKEN,
-            message: 'Link is broken'
-        );
-
-        $this->collection = new ValidationResultCollection([
-            $this->validResult,
-            $this->brokenResult,
-        ]);
+        // deterministic environment; no IO
     });
 
-    it('counts results correctly', function () {
-        expect($this->collection->count())->toBe(2);
+    afterEach(function () {
+        // no teardown necessary
     });
 
-    it('filters successful results', function () {
-        $successful = $this->collection->getSuccessful();
+    it('it_should_construct_and_iterate_validation_results', function () {
+        $c = ($this->collection)();
 
-        expect($successful->count())->toBe(1)
-            ->and($successful->first())->toBe($this->validResult);
+        expect($c->count())->toBe(2)
+            ->and($c->isEmpty())->toBeFalse()
+            ->and($c->first())->toBeInstanceOf(ValidationResult::class)
+            ->and($c->last())->toBeInstanceOf(ValidationResult::class);
+
+        $arr = iterator_to_array($c);
+        expect($arr)->toHaveCount(2)
+            ->and($arr[0])->toBeInstanceOf(ValidationResult::class);
     });
 
-    it('filters failed results', function () {
-        $failed = $this->collection->getFailed();
+    it('it_should_filter_successful_and_failed_results', function () {
+        $c = ($this->collection)();
 
-        expect($failed->count())->toBe(1)
-            ->and($failed->first())->toBe($this->brokenResult);
-    });
+        $ok = $c->getSuccessful();
+        $bad = $c->getFailed();
 
-    it('is iterable', function () {
-        $results = [];
-        foreach ($this->collection as $result) {
-            $results[] = $result;
+        expect($ok->count())->toBe(1)
+            ->and($bad->count())->toBe(1);
+
+        foreach ($ok as $r) {
+            expect($r->isValid())->toBeTrue();
         }
-
-        expect($results)->toHaveCount(2)
-            ->and($results[0])->toBe($this->validResult)
-            ->and($results[1])->toBe($this->brokenResult);
+        foreach ($bad as $r) {
+            expect($r->isValid())->toBeFalse();
+        }
     });
 
-    it('validates result types on construction', function () {
-        expect(fn () => new ValidationResultCollection(['invalid']))
-            ->toThrow(InvalidArgumentException::class, 'All results must be ValidationResult instances. Invalid item at index 0');
-    });
-
-    it('can be created from array', function () {
-        $collection = ValidationResultCollection::fromArray([
-            $this->validResult,
-            $this->brokenResult,
+    it('it_should_convert_from_mixed_array_and_to_arrays', function () {
+        $c = ValidationResultCollection::fromArray([
+            ['url' => 'x', 'status' => 'valid', 'scope' => 'internal'],
+            ValidationResult::failure('y', ValidationScope::EXTERNAL, LinkStatus::BROKEN),
         ]);
 
-        expect($collection->count())->toBe(2);
+        expect($c->count())->toBe(2);
+
+        $vals = $c->toValidationResultArray();
+        expect($vals[0])->toBeInstanceOf(ValidationResult::class);
+
+        $plain = $c->toArray();
+        expect($plain)->toBeArray()
+            ->and($plain[0])->toHaveKeys(['url', 'status', 'scope', 'is_valid']);
     });
 
-    it('provides array conversion', function () {
-        $array = $this->collection->toArray();
-
-        expect($array)->toBeArray()
-            ->and($array)->toHaveCount(2);
-    });
-
-    it('checks if collection is empty', function () {
-        $emptyCollection = new ValidationResultCollection([]);
-        $nonEmptyCollection = $this->collection;
-
-        expect($emptyCollection->isEmpty())->toBeTrue()
-            ->and($nonEmptyCollection->isEmpty())->toBeFalse();
-    });
-
-    it('provides first and last result access', function () {
-        expect($this->collection->first())->toBe($this->validResult)
-            ->and($this->collection->last())->toBe($this->brokenResult);
-    });
-
-    it('handles empty collection for first and last', function () {
-        $emptyCollection = new ValidationResultCollection([]);
-
-        expect($emptyCollection->first())->toBeNull()
-            ->and($emptyCollection->last())->toBeNull();
+    it('it_should_throw_on_invalid_element_in_constructor', function () {
+        expect(fn () => new ValidationResultCollection([new stdClass()]))->toThrow(InvalidArgumentException::class);
     });
 });

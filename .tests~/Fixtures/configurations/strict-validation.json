@@ -1,0 +1,132 @@
+{
+  "version": "1.0.0",
+  "description": "Strict validation configuration for comprehensive security and validation testing",
+  "configuration": {
+    "scopes": ["ALL"],
+    "timeout": 10,
+    "max_redirects": 3,
+    "concurrent_requests": 5,
+    "cache_enabled": false,
+    "follow_redirects": true,
+    "user_agent": "validate-links-strict/1.0",
+    "verify_ssl": true,
+    "security_checks": true,
+    "max_file_size": 10485760,
+    "excluded_domains": [
+      "malicious.com",
+      "suspicious.net",
+      "blocked.org",
+      "phishing-site.com",
+      "known-malware.evil"
+    ],
+    "included_domains": [],
+    "blocked_protocols": [
+      "javascript",
+      "data",
+      "vbscript",
+      "file",
+      "ftp"
+    ],
+    "allowed_protocols": [
+      "http",
+      "https"
+    ],
+    "blocked_file_extensions": [
+      ".exe",
+      ".bat",
+      ".cmd",
+      ".com",
+      ".pif",
+      ".scr",
+      ".vbs",
+      ".jar",
+      ".msi"
+    ],
+    "allowed_file_extensions": [
+      ".html",
+      ".htm",
+      ".md",
+      ".txt",
+      ".pdf",
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".svg",
+      ".css",
+      ".js",
+      ".json",
+      ".xml"
+    ],
+    "security_rules": {
+      "block_path_traversal": true,
+      "block_suspicious_patterns": true,
+      "validate_encoding": true,
+      "check_homograph_attacks": true,
+      "block_private_ips": true,
+      "validate_port_ranges": true,
+      "check_url_length": true,
+      "max_url_length": 2048,
+      "block_unicode_control_chars": true,
+      "validate_domain_format": true
+    },
+    "validation_rules": {
+      "require_valid_tld": true,
+      "check_dns_resolution": false,
+      "validate_certificate": true,
+      "check_response_headers": true,
+      "validate_content_type": true,
+      "check_file_size": true,
+      "validate_redirects": true,
+      "check_anchor_existence": true
+    },
+    "error_handling": {
+      "fail_on_security_violation": true,
+      "fail_on_timeout": true,
+      "fail_on_ssl_error": true,
+      "fail_on_dns_error": true,
+      "retry_attempts": 0,
+      "retry_delay": 0
+    },
+    "reporting": {
+      "include_security_details": true,
+      "include_performance_metrics": true,
+      "include_redirect_chain": true,
+      "include_response_headers": true,
+      "verbose_errors": true
+    }
+  },
+  "test_scenarios": {
+    "should_pass": [
+      "https://example.com",
+      "https://secure.example.com/path",
+      "https://api.example.com/v1/endpoint",
+      "./relative/path.md",
+      "#anchor-link"
+    ],
+    "should_fail": [
+      "javascript:alert('xss')",
+      "ftp://malicious.com/file",
+      "../../../etc/passwd",
+      "https://malicious.com",
+      "https://example.com/file.exe"
+    ],
+    "should_timeout": [
+      "https://httpbin.org/delay/15"
+    ],
+    "should_redirect_fail": [
+      "https://httpbin.org/redirect/10"
+    ]
+  },
+  "metadata": {
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["strict", "security", "validation", "comprehensive", "testing"],
+    "use_cases": [
+      "security_testing",
+      "compliance_validation",
+      "production_readiness",
+      "penetration_testing"
+    ]
+  }
+}

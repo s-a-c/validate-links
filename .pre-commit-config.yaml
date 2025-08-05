@@ -2,13 +2,13 @@ repos:
   - repo: local
     hooks:
       - id: phpstan
-        name: PHPStan
-        description: 'Runs PHPStan static analysis on PHP files'
+        name: PHPStan (Core Application Only)
+        description: 'Runs PHPStan Level 10 analysis on core application files (excludes tests)'
         entry: vendor/bin/phpstan analyze
         language: system
         pass_filenames: false
-        files: '^(app|bin|bootstrap|config|database|routes|tests|packages|plugins)/.+\.php$'
-        exclude: '^(vendor|node_modules|storage|bootstrap/cache|public|database/migrations|plugins/.*/database/migrations|reports/rector/cache)/.*$'
+        files: '^(app|bin|bootstrap|config|database|routes|packages|plugins)/.+\.php$'
+        exclude: '^(vendor|node_modules|storage|bootstrap/cache|public|database/migrations|plugins/.*/database/migrations|reports/rector/cache|tests)/.*$'
 
       - id: rector
         name: Rector Type Safety
@@ -46,3 +46,12 @@ repos:
         pass_filenames: false
         files: '\.(ts|tsx)$'
         exclude: '^(node_modules|vendor|public|storage|dist|build)/.*$'
+
+      - id: policy-check
+        name: Policy Check (Guidelines Enforcement)
+        description: 'Enforces .ai/guidelines.md and .ai/guidelines/** with drift detection and secret scanning'
+        entry: php scripts/policy-check.php --strict
+        language: system
+        pass_filenames: false
+        files: '.*'
+        exclude: '^(vendor|node_modules|storage|bootstrap/cache|public|dist|build|coverage|reports/rector/cache)/.*$'

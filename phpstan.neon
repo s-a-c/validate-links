@@ -2,7 +2,8 @@ includes:
     - ./vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: max
+    # Level 10 - Maximum strictness beyond 'max'
+    level: 10
 
     paths:
         - app
@@ -14,6 +15,11 @@ parameters:
         - vendor
         - vendor/*
         - vendor/**/*
+        - bootstrap/cache (?)
+        - storage/logs (?)
+        - storage/framework (?)
+        - storage/app (?)
+        - node_modules (?)
 
     errorFormat: table
     editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
@@ -26,12 +32,41 @@ parameters:
     tmpDir: reports/phpstan
 
     ignoreErrors:
+        # Temporary ignores for gradual level 10 adoption
+        # Remove these as violations are fixed
 
+    # Advanced type checking - Level 10 strictness
     checkExplicitMixed: true
     checkImplicitMixed: true
     checkMissingCallableSignature: true
+    checkMissingVarTagTypehint: true
+    checkArgumentsPassedByReference: true
+    checkMaybeUndefinedVariables: true
+    checkNullables: true
+    checkThisOnly: false
+    checkUnionTypes: true
+    checkExplicitMixedMissingReturn: true
+    checkPhpDocMissingReturn: true
+    checkPhpDocMethodSignatures: true
+    checkExtraArguments: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+    checkUninitializedProperties: true
+    checkDynamicProperties: true
+    checkClassCaseSensitivity: true
+    checkFunctionArgumentTypes: true
+    checkMissingTypehints: true
+    reportMaybes: true
+    reportStaticMethodSignatures: true
+    reportMagicMethods: true
+    reportMagicProperties: true
+    reportAnyTypeWideningInVarTag: true
+    reportPossiblyNonexistentConstantArrayOffset: true
+    reportPossiblyNonexistentGeneralArrayOffset: true
+
+    # PHPDoc and type handling
     treatPhpDocTypesAsCertain: false
-    reportUnmatchedIgnoredErrors: false
+    reportUnmatchedIgnoredErrors: true
+    reportWrongPhpDocTypeInVarTag: true
 
     # PHP 8.4 specific settings
     phpVersion: 80400
@@ -40,10 +75,39 @@ parameters:
     universalObjectCratesClasses:
         - stdClass
 
-    # Performance settings
+    # Laravel Zero specific configurations
+    scanFiles:
+        - bootstrap/app.php
+        - bootstrap/providers.php
+
+    scanDirectories:
+        - app/Commands
+        - app/Services
+        - app/Contracts
+        - app/Enums
+        - app/Exceptions
+        - app/Providers
+        - app/Services/ValueObjects
+        - app/Services/Formatters
+        - app/Services/Contracts
+
+    # Performance settings optimized for large codebase
     parallel:
         maximumNumberOfProcesses: 8
+        minimumNumberOfJobsPerProcess: 2
+        processTimeout: 120.0
 
     # Bootstrap file to set UTF-8 locale
     bootstrapFiles:
         - phpstan-bootstrap.php
+
+    # Laravel Zero specific type extensions
+    # stubFiles:
+    #     - stubs/laravel-zero.stub (?)
+
+    # Custom rules for Laravel Zero console applications
+    customRulesetUsed: true
+    
+    # Additional Laravel Zero specific checks
+    checkOctaneCompatibility: false
+    checkBenevolentUnionTypes: true

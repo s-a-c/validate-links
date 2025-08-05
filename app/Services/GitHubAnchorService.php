@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Services\Contracts\GitHubAnchorInterface;
 
-final class GitHubAnchorService implements GitHubAnchorInterface
+class GitHubAnchorService implements GitHubAnchorInterface
 {
     /**
      * Generate GitHub-style anchor from heading text.

@@ -6,8 +6,20 @@ namespace App\Services\Formatters;
 
 use App\Services\ValueObjects\ValidationResult;
 
-final class MarkdownFormatter
+/**
+ * Markdown formatter for validation results with GitHub-flavored markdown.
+ *
+ * This formatter generates markdown output suitable for documentation,
+ * GitHub issues, pull requests, and other markdown-compatible platforms.
+ */
+class MarkdownFormatter
 {
+    /**
+     * Format validation result as GitHub-flavored markdown.
+     *
+     * @param ValidationResult $result The validation result to format
+     * @return string Formatted markdown with tables and emoji icons
+     */
     public function format(ValidationResult $result): string
     {
         $output = [];

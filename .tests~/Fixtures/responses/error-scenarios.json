@@ -1,0 +1,402 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive collection of error scenarios for testing error handling and resilience",
+  "error_categories": {
+    "network_errors": {
+      "connection_timeout": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_28",
+        "message": "Operation timed out after 30000 milliseconds with 0 bytes received",
+        "curl_error": "cURL error 28: Operation timed out",
+        "should_retry": true,
+        "expected_status": "TIMEOUT",
+        "response_time": 30000
+      },
+      "connection_refused": {
+        "error_type": "ConnectException",
+        "error_code": "CURL_ERROR_7",
+        "message": "Failed to connect to example.com port 80: Connection refused",
+        "curl_error": "cURL error 7: Failed to connect to host",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 1000
+      },
+      "dns_resolution_failed": {
+        "error_type": "ConnectException",
+        "error_code": "CURL_ERROR_6",
+        "message": "Could not resolve host: nonexistent.example.com",
+        "curl_error": "cURL error 6: Could not resolve host",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 5000
+      },
+      "network_unreachable": {
+        "error_type": "ConnectException",
+        "error_code": "CURL_ERROR_7",
+        "message": "Network is unreachable",
+        "curl_error": "cURL error 7: Network is unreachable",
+        "should_retry": true,
+        "expected_status": "BROKEN",
+        "response_time": 10000
+      },
+      "host_unreachable": {
+        "error_type": "ConnectException",
+        "error_code": "CURL_ERROR_7",
+        "message": "No route to host",
+        "curl_error": "cURL error 7: No route to host",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 15000
+      }
+    },
+    "ssl_tls_errors": {
+      "certificate_verify_failed": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_60",
+        "message": "SSL certificate problem: certificate verify failed (self signed certificate)",
+        "curl_error": "cURL error 60: SSL certificate problem: certificate verify failed",
+        "should_retry": false,
+        "expected_status": "SECURITY_VIOLATION",
+        "response_time": 2000
+      },
+      "certificate_expired": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_60",
+        "message": "SSL certificate problem: certificate has expired",
+        "curl_error": "cURL error 60: SSL certificate problem: certificate has expired",
+        "should_retry": false,
+        "expected_status": "SECURITY_VIOLATION",
+        "response_time": 1500
+      },
+      "ssl_handshake_failed": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_35",
+        "message": "SSL connect error",
+        "curl_error": "cURL error 35: SSL connect error",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 3000
+      },
+      "ssl_protocol_error": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_35",
+        "message": "error:1408F10B:SSL routines:ssl3_get_record:wrong version number",
+        "curl_error": "cURL error 35: SSL protocol error",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 2500
+      },
+      "certificate_hostname_mismatch": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_51",
+        "message": "SSL: certificate subject name does not match target host name",
+        "curl_error": "cURL error 51: SSL certificate subject name does not match target host name",
+        "should_retry": false,
+        "expected_status": "SECURITY_VIOLATION",
+        "response_time": 1800
+      }
+    },
+    "http_protocol_errors": {
+      "malformed_response": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_56",
+        "message": "Received HTTP code 0 from proxy after CONNECT",
+        "curl_error": "cURL error 56: Received HTTP code 0 from proxy after CONNECT",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 500
+      },
+      "invalid_http_response": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_8",
+        "message": "Server returned nothing (no headers, no data)",
+        "curl_error": "cURL error 8: Server returned nothing",
+        "should_retry": true,
+        "expected_status": "BROKEN",
+        "response_time": 1000
+      },
+      "chunked_encoding_error": {
+        "error_type": "RequestException",
+        "error_code": "CURL_ERROR_18",
+        "message": "transfer closed with outstanding read data remaining",
+        "curl_error": "cURL error 18: transfer closed with outstanding read data remaining",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 2000
+      },
+      "http_version_not_supported": {
+        "error_type": "ClientException",
+        "error_code": "HTTP_505",
+        "message": "HTTP Version Not Supported",
+        "http_status_code": 505,
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 300
+      }
+    },
+    "redirect_errors": {
+      "too_many_redirects": {
+        "error_type": "TooManyRedirectsException",
+        "error_code": "CURL_ERROR_47",
+        "message": "Maximum (5) redirects followed",
+        "curl_error": "cURL error 47: Maximum redirects followed",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 1500,
+        "redirect_count": 5
+      },
+      "redirect_loop": {
+        "error_type": "TooManyRedirectsException",
+        "error_code": "REDIRECT_LOOP",
+        "message": "Redirect loop detected",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 2000,
+        "redirect_count": 10
+      },
+      "invalid_redirect_location": {
+        "error_type": "RequestException",
+        "error_code": "INVALID_REDIRECT",
+        "message": "Invalid redirect location header",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 200
+      },
+      "missing_location_header": {
+        "error_type": "RequestException",
+        "error_code": "MISSING_LOCATION",
+        "message": "Redirect response missing Location header",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 150
+      }
+    },
+    "content_errors": {
+      "content_length_mismatch": {
+        "error_type": "RequestException",
+        "error_code": "CONTENT_LENGTH_MISMATCH",
+        "message": "Content-Length header does not match actual content length",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 1000
+      },
+      "content_encoding_error": {
+        "error_type": "RequestException",
+        "error_code": "CONTENT_ENCODING_ERROR",
+        "message": "Error decompressing gzip content",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 800
+      },
+      "invalid_content_type": {
+        "error_type": "RequestException",
+        "error_code": "INVALID_CONTENT_TYPE",
+        "message": "Response content type does not match expected type",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 300
+      },
+      "content_too_large": {
+        "error_type": "RequestException",
+        "error_code": "CONTENT_TOO_LARGE",
+        "message": "Response content exceeds maximum allowed size",
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 5000,
+        "content_size": 104857600
+      }
+    },
+    "authentication_errors": {
+      "authentication_required": {
+        "error_type": "ClientException",
+        "error_code": "HTTP_401",
+        "message": "Authentication required",
+        "http_status_code": 401,
+        "should_retry": false,
+        "expected_status": "FORBIDDEN",
+        "response_time": 200,
+        "headers": {
+          "WWW-Authenticate": "Basic realm=\"Restricted Area\""
+        }
+      },
+      "authentication_failed": {
+        "error_type": "ClientException",
+        "error_code": "HTTP_401",
+        "message": "Invalid credentials",
+        "http_status_code": 401,
+        "should_retry": false,
+        "expected_status": "FORBIDDEN",
+        "response_time": 300
+      },
+      "access_forbidden": {
+        "error_type": "ClientException",
+        "error_code": "HTTP_403",
+        "message": "Access forbidden",
+        "http_status_code": 403,
+        "should_retry": false,
+        "expected_status": "FORBIDDEN",
+        "response_time": 150
+      }
+    },
+    "rate_limiting_errors": {
+      "rate_limit_exceeded": {
+        "error_type": "ClientException",
+        "error_code": "HTTP_429",
+        "message": "Too Many Requests",
+        "http_status_code": 429,
+        "should_retry": true,
+        "expected_status": "BROKEN",
+        "response_time": 100,
+        "headers": {
+          "Retry-After": "60",
+          "X-RateLimit-Limit": "100",
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": "1640995200"
+        }
+      },
+      "quota_exceeded": {
+        "error_type": "ClientException",
+        "error_code": "HTTP_429",
+        "message": "API quota exceeded",
+        "http_status_code": 429,
+        "should_retry": false,
+        "expected_status": "BROKEN",
+        "response_time": 80
+      }
+    },
+    "server_errors": {
+      "internal_server_error": {
+        "error_type": "ServerException",
+        "error_code": "HTTP_500",
+        "message": "Internal Server Error",
+        "http_status_code": 500,
+        "should_retry": true,
+        "expected_status": "BROKEN",
+        "response_time": 5000
+      },
+      "bad_gateway": {
+        "error_type": "ServerException",
+        "error_code": "HTTP_502",
+        "message": "Bad Gateway",
+        "http_status_code": 502,
+        "should_retry": true,
+        "expected_status": "BROKEN",
+        "response_time": 10000
+      },
+      "service_unavailable": {
+        "error_type": "ServerException",
+        "error_code": "HTTP_503",
+        "message": "Service Unavailable",
+        "http_status_code": 503,
+        "should_retry": true,
+        "expected_status": "BROKEN",
+        "response_time": 1000,
+        "headers": {
+          "Retry-After": "120"
+        }
+      },
+      "gateway_timeout": {
+        "error_type": "ServerException",
+        "error_code": "HTTP_504",
+        "message": "Gateway Timeout",
+        "http_status_code": 504,
+        "should_retry": true,
+        "expected_status": "TIMEOUT",
+        "response_time": 30000
+      }
+    },
+    "security_errors": {
+      "blocked_by_security_policy": {
+        "error_type": "SecurityException",
+        "error_code": "SECURITY_VIOLATION",
+        "message": "URL blocked by security policy",
+        "should_retry": false,
+        "expected_status": "SECURITY_VIOLATION",
+        "response_time": 0,
+        "security_rule": "blocked_domain"
+      },
+      "malicious_url_detected": {
+        "error_type": "SecurityException",
+        "error_code": "SECURITY_VIOLATION",
+        "message": "Malicious URL pattern detected",
+        "should_retry": false,
+        "expected_status": "SECURITY_VIOLATION",
+        "response_time": 0,
+        "security_rule": "malicious_pattern"
+      },
+      "path_traversal_detected": {
+        "error_type": "SecurityException",
+        "error_code": "SECURITY_VIOLATION",
+        "message": "Path traversal attempt detected",
+        "should_retry": false,
+        "expected_status": "SECURITY_VIOLATION",
+        "response_time": 0,
+        "security_rule": "path_traversal"
+      },
+      "unsafe_protocol": {
+        "error_type": "SecurityException",
+        "error_code": "SECURITY_VIOLATION",
+        "message": "Unsafe protocol detected",
+        "should_retry": false,
+        "expected_status": "SECURITY_VIOLATION",
+        "response_time": 0,
+        "security_rule": "unsafe_protocol"
+      }
+    }
+  },
+  "test_scenarios": {
+    "network_resilience": {
+      "description": "Test network error handling and resilience",
+      "errors": ["connection_timeout", "connection_refused", "dns_resolution_failed", "network_unreachable"]
+    },
+    "ssl_security": {
+      "description": "Test SSL/TLS error handling and security validation",
+      "errors": ["certificate_verify_failed", "certificate_expired", "ssl_handshake_failed", "certificate_hostname_mismatch"]
+    },
+    "http_protocol": {
+      "description": "Test HTTP protocol error handling",
+      "errors": ["malformed_response", "invalid_http_response", "chunked_encoding_error"]
+    },
+    "redirect_handling": {
+      "description": "Test redirect error scenarios",
+      "errors": ["too_many_redirects", "redirect_loop", "invalid_redirect_location", "missing_location_header"]
+    },
+    "content_validation": {
+      "description": "Test content validation and error handling",
+      "errors": ["content_length_mismatch", "content_encoding_error", "content_too_large"]
+    },
+    "authentication": {
+      "description": "Test authentication and authorization errors",
+      "errors": ["authentication_required", "authentication_failed", "access_forbidden"]
+    },
+    "rate_limiting": {
+      "description": "Test rate limiting and quota management",
+      "errors": ["rate_limit_exceeded", "quota_exceeded"]
+    },
+    "server_errors": {
+      "description": "Test server error handling and retry logic",
+      "errors": ["internal_server_error", "bad_gateway", "service_unavailable", "gateway_timeout"]
+    },
+    "security_validation": {
+      "description": "Test security validation and blocking",
+      "errors": ["blocked_by_security_policy", "malicious_url_detected", "path_traversal_detected", "unsafe_protocol"]
+    }
+  },
+  "retry_strategies": {
+    "should_retry": {
+      "description": "Errors that should trigger retry attempts",
+      "errors": ["connection_timeout", "network_unreachable", "invalid_http_response", "internal_server_error", "bad_gateway", "service_unavailable", "gateway_timeout", "rate_limit_exceeded"]
+    },
+    "should_not_retry": {
+      "description": "Errors that should not trigger retry attempts",
+      "errors": ["connection_refused", "dns_resolution_failed", "certificate_verify_failed", "ssl_handshake_failed", "too_many_redirects", "authentication_required", "access_forbidden", "blocked_by_security_policy"]
+    }
+  },
+  "metadata": {
+    "total_errors": 32,
+    "categories": 8,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["errors", "exceptions", "testing", "resilience", "deterministic"]
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "version": "1.0.0",
+  "description": "Comprehensive collection of redirect scenarios for testing redirect handling",
+  "scenarios": {
+    "simple_redirects": {
+      "301_permanent": {
+        "initial_url": "https://example.com/old-page",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/old-page",
+            "status_code": 301,
+            "location": "https://example.com/new-page",
+            "headers": {
+              "Location": "https://example.com/new-page",
+              "Cache-Control": "public, max-age=31536000"
+            }
+          }
+        ],
+        "final_url": "https://example.com/new-page",
+        "expected_status": 200
+      },
+      "302_temporary": {
+        "initial_url": "https://example.com/temp-redirect",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/temp-redirect",
+            "status_code": 302,
+            "location": "https://example.com/current-page",
+            "headers": {
+              "Location": "https://example.com/current-page",
+              "Cache-Control": "no-cache"
+            }
+          }
+        ],
+        "final_url": "https://example.com/current-page",
+        "expected_status": 200
+      },
+      "307_temporary": {
+        "initial_url": "https://api.example.com/v1/endpoint",
+        "redirect_chain": [
+          {
+            "url": "https://api.example.com/v1/endpoint",
+            "status_code": 307,
+            "location": "https://api.example.com/v2/endpoint",
+            "headers": {
+              "Location": "https://api.example.com/v2/endpoint"
+            }
+          }
+        ],
+        "final_url": "https://api.example.com/v2/endpoint",
+        "expected_status": 200
+      },
+      "308_permanent": {
+        "initial_url": "https://example.com/api/old",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/api/old",
+            "status_code": 308,
+            "location": "https://example.com/api/new",
+            "headers": {
+              "Location": "https://example.com/api/new"
+            }
+          }
+        ],
+        "final_url": "https://example.com/api/new",
+        "expected_status": 200
+      }
+    },
+    "multi_hop_redirects": {
+      "two_hop_chain": {
+        "initial_url": "https://example.com/start",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/start",
+            "status_code": 301,
+            "location": "https://example.com/middle",
+            "headers": {
+              "Location": "https://example.com/middle"
+            }
+          },
+          {
+            "url": "https://example.com/middle",
+            "status_code": 302,
+            "location": "https://example.com/final",
+            "headers": {
+              "Location": "https://example.com/final"
+            }
+          }
+        ],
+        "final_url": "https://example.com/final",
+        "expected_status": 200
+      },
+      "three_hop_chain": {
+        "initial_url": "https://old.example.com/page",
+        "redirect_chain": [
+          {
+            "url": "https://old.example.com/page",
+            "status_code": 301,
+            "location": "https://www.example.com/page",
+            "headers": {
+              "Location": "https://www.example.com/page"
+            }
+          },
+          {
+            "url": "https://www.example.com/page",
+            "status_code": 302,
+            "location": "https://new.example.com/page",
+            "headers": {
+              "Location": "https://new.example.com/page"
+            }
+          },
+          {
+            "url": "https://new.example.com/page",
+            "status_code": 301,
+            "location": "https://final.example.com/page",
+            "headers": {
+              "Location": "https://final.example.com/page"
+            }
+          }
+        ],
+        "final_url": "https://final.example.com/page",
+        "expected_status": 200
+      },
+      "max_redirects_chain": {
+        "initial_url": "https://example.com/redirect-0",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/redirect-0",
+            "status_code": 301,
+            "location": "https://example.com/redirect-1"
+          },
+          {
+            "url": "https://example.com/redirect-1",
+            "status_code": 301,
+            "location": "https://example.com/redirect-2"
+          },
+          {
+            "url": "https://example.com/redirect-2",
+            "status_code": 301,
+            "location": "https://example.com/redirect-3"
+          },
+          {
+            "url": "https://example.com/redirect-3",
+            "status_code": 301,
+            "location": "https://example.com/redirect-4"
+          },
+          {
+            "url": "https://example.com/redirect-4",
+            "status_code": 301,
+            "location": "https://example.com/redirect-5"
+          }
+        ],
+        "final_url": "https://example.com/redirect-5",
+        "expected_status": 200,
+        "notes": "Tests maximum redirect limit handling"
+      }
+    },
+    "problematic_redirects": {
+      "infinite_loop": {
+        "initial_url": "https://example.com/loop-a",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/loop-a",
+            "status_code": 301,
+            "location": "https://example.com/loop-b"
+          },
+          {
+            "url": "https://example.com/loop-b",
+            "status_code": 301,
+            "location": "https://example.com/loop-a"
+          }
+        ],
+        "expected_error": "redirect_loop",
+        "notes": "Should detect and handle infinite redirect loops"
+      },
+      "self_redirect": {
+        "initial_url": "https://example.com/self-redirect",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/self-redirect",
+            "status_code": 301,
+            "location": "https://example.com/self-redirect"
+          }
+        ],
+        "expected_error": "self_redirect",
+        "notes": "Should detect self-referencing redirects"
+      },
+      "missing_location": {
+        "initial_url": "https://example.com/no-location",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/no-location",
+            "status_code": 301,
+            "location": null,
+            "headers": {}
+          }
+        ],
+        "expected_error": "missing_location_header",
+        "notes": "Should handle redirects without Location header"
+      },
+      "invalid_location": {
+        "initial_url": "https://example.com/invalid-redirect",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/invalid-redirect",
+            "status_code": 301,
+            "location": "not-a-valid-url",
+            "headers": {
+              "Location": "not-a-valid-url"
+            }
+          }
+        ],
+        "expected_error": "invalid_redirect_url",
+        "notes": "Should handle invalid redirect URLs"
+      }
+    },
+    "cross_domain_redirects": {
+      "http_to_https": {
+        "initial_url": "http://example.com/secure",
+        "redirect_chain": [
+          {
+            "url": "http://example.com/secure",
+            "status_code": 301,
+            "location": "https://example.com/secure",
+            "headers": {
+              "Location": "https://example.com/secure"
+            }
+          }
+        ],
+        "final_url": "https://example.com/secure",
+        "expected_status": 200
+      },
+      "domain_change": {
+        "initial_url": "https://old-domain.com/page",
+        "redirect_chain": [
+          {
+            "url": "https://old-domain.com/page",
+            "status_code": 301,
+            "location": "https://new-domain.com/page",
+            "headers": {
+              "Location": "https://new-domain.com/page"
+            }
+          }
+        ],
+        "final_url": "https://new-domain.com/page",
+        "expected_status": 200
+      },
+      "subdomain_redirect": {
+        "initial_url": "https://example.com/api",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/api",
+            "status_code": 301,
+            "location": "https://api.example.com/",
+            "headers": {
+              "Location": "https://api.example.com/"
+            }
+          }
+        ],
+        "final_url": "https://api.example.com/",
+        "expected_status": 200
+      }
+    }
+  },
+  "metadata": {
+    "total_scenarios": 15,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "tags": ["redirects", "301", "302", "307", "308", "chains", "loops", "testing"]
+  }
+}

@@ -1,0 +1,32 @@
+name: Policy Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  policy-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: none
+          extensions: none
+
+      - name: Validate policy (strict)
+        run: php scripts/policy-check.php --strict
+
+      - name: Upload policy-check report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-check-report
+          path: .ai/.policy-state.json
+          if-no-files-found: ignore

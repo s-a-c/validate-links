@@ -1,25 +1,62 @@
 {
-    "name": "s-a-c/validate-links",
-    "description": "Comprehensive PHP Link Validation and Remediation Tools - Laravel Zero Edition",
-    "type": "project",
-    "keywords": ["link-validation", "documentation", "laravel-zero", "cli"],
-    "license": "MIT",
     "authors": [
         {
-            "name": "StandAloneComplex",
-            "email": "71233932+s-a-c@users.noreply.github.com"
+            "email": "71233932+s-a-c@users.noreply.github.com",
+            "name": "StandAloneComplex"
         }
     ],
-    "bin": ["validate-links"],
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "exclude-from-classmap": [
+            "vendor/laravel/framework/src/Illuminate/Foundation/"
+        ],
+        "psr-4": {
+            "Tests\\": "tests/",
+            "Tests\\Support\\": "tests/Support/",
+            "Tests\\Support\\Builders\\": "tests/Support/Builders/",
+            "Tests\\Support\\Doubles\\": "tests/Support/Doubles/",
+            "Tests\\Support\\Factories\\": "tests/Support/Factories/"
+        }
+    },
+    "bin": [
+        "validate-links"
+    ],
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "infection/extension-installer": true,
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "description": "Comprehensive PHP Link Validation and Remediation Tools - Laravel Zero Edition",
+    "keywords": [
+        "link-validation",
+        "documentation",
+        "laravel-zero",
+        "cli"
+    ],
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "name": "s-a-c/validate-links",
+    "prefer-stable": true,
     "require": {
-        "php": "^8.4",
+        "ext-curl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",
-        "ext-curl": "*",
-        "illuminate/http": "^12.0",
-        "illuminate/log": "^12.0",
         "laravel-zero/framework": "^12.0",
         "laravel/prompts": "^0.3",
+        "php": "^8.4",
         "symfony/dom-crawler": "^7.2"
     },
     "require-dev": {
@@ -35,9 +72,11 @@
         "pestphp/pest": "^4.x-dev",
         "pestphp/pest-plugin": "^4.x-dev",
         "pestphp/pest-plugin-arch": "^4.x-dev",
+        "pestphp/pest-plugin-laravel": "4.x-dev",
         "pestphp/pest-plugin-mutate": "^4.x-dev",
         "pestphp/pest-plugin-type-coverage": "^4.x-dev",
         "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-mockery": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
         "psalm/plugin-laravel": "^3.0",
         "rector/rector": "^2.1",
@@ -46,83 +85,123 @@
         "roave/security-advisories": "dev-latest",
         "vimeo/psalm": "^6.13"
     },
-    "autoload": {
-        "psr-4": {
-            "App\\": "app/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/",
-            "Tests\\Support\\": "tests/Support/",
-            "Tests\\Support\\Doubles\\": "tests/Support/Doubles/",
-            "Tests\\Support\\Factories\\": "tests/Support/Factories/",
-            "Tests\\Support\\Builders\\": "tests/Support/Builders/"
-        }
-    },
     "scripts": {
-        "test": "pest",
-        "test:unit": "pest tests/Unit/",
-        "test:unit:commands": "pest tests/Unit/Commands",
-        "test:unit:contracts": "pest tests/Unit/Contracts",
-        "test:unit:enums": "pest tests/Unit/Enums",
-        "test:unit:exceptions": "pest tests/Unit/Exceptions",
-        "test:unit:providers": "pest tests/Unit/Providers",
-        "test:unit:services": "pest tests/Unit/Services",
-        "test:e2e": "pest tests/E2e/",
-        "test:feature": "pest tests/Feature/",
-        "test:services": "pest tests/Services/",
-        "test:arch": "pest --filter=arch",
-        "test:coverage": "pest --coverage --coverage-html=coverage-html",
-        "test:stress": "pest --filter=stress",
         "analyse": "phpstan analyse",
         "analyse:baseline": "phpstan analyse --generate-baseline",
         "analyse:pro": "phpstan analyse --pro",
-        "psalm": "psalm --show-info=true",
-        "psalm:baseline": "psalm --set-baseline=psalm-baseline.xml",
-        "cs-fix": "pint",
-        "cs-check": "pint --test",
-        "cs-fixer": "php-cs-fixer fix --dry-run --diff",
-        "cs-fixer-fix": "php-cs-fixer fix",
-        "refactor": "rector process",
-        "refactor-dry": "rector process --dry-run",
-        "refactor-types": "rector process --config=rector-type-safety.php",
-        "refactor-types-dry": "rector process --config=rector-type-safety.php --dry-run",
+        "ci:check": [
+            "@security",
+            "@quality:full"
+        ],
+        "ci:fast": [
+            "@security",
+            "@quality:fast"
+        ],
+        "cs:check": "pint --test",
+        "cs:fix": "pint",
+        "cs:fixer": "php-cs-fixer fix --dry-run --diff",
+        "cs:fixer:fix": "php-cs-fixer fix",
+        "dev:setup": [
+            "composer install",
+            "@normalize",
+            "@cs:fix"
+        ],
         "insights": "phpinsights --no-interaction",
         "insights:fix": "phpinsights --fix",
-        "normalize-check": "composer-normalize --dry-run",
-        "security": "composer audit",
-        "security:advisories": "composer show --direct --outdated",
-        "quality-full": [
-            "@normalize-check",
-            "@cs-check",
-            "@analyse",
-            "@psalm",
-            "@refactor-dry",
-            "@insights",
-            "@test"
+        "normalize:check": "composer-normalize --dry-run",
+        "pre-commit": [
+            "@quality:fast"
         ],
-        "quality-fix": [
+        "pre-push": [
+            "@quality:full"
+        ],
+        "psalm": "psalm --show-info=true",
+        "psalm:baseline": "psalm --set-baseline=psalm-baseline.xml",
+        "quality:fast": [
+            "@normalize:check",
+            "@cs:check",
+            "@analyse",
+            "@test:fast"
+        ],
+        "quality:fix": [
             "@normalize",
-            "@cs-fix",
+            "@cs:fix",
             "@refactor",
             "@insights:fix"
         ],
-        "pre-commit": [
-            "@quality-full"
+        "quality:full": [
+            "@normalize:check",
+            "@cs:check",
+            "@analyse",
+            "@psalm",
+            "@refactor:dry",
+            "@insights",
+            "@test:comprehensive"
         ],
-        "ci-check": [
-            "@security",
-            "@quality-full"
+        "refactor": "rector process",
+        "refactor:dry": "rector process --dry-run",
+        "refactor:types": "rector process --config=rector-type-safety.php",
+        "refactor:types:dry": "rector process --config=rector-type-safety.php --dry-run",
+        "security": "composer audit",
+        "security:advisories": "composer show --direct --outdated",
+        "test": [
+            "@test:unit",
+            "@test:integration",
+            "@test:feature",
+            "@test:arch",
+            "@test:e2e"
         ],
-        "dev-setup": [
-            "composer install",
-            "@normalize",
-            "@cs-fix"
+        "test:arch": "pest tests/Architecture/ --order-by=depends",
+        "test:ci": [
+            "@test:unit",
+            "@test:integration",
+            "@test:feature",
+            "@test:arch",
+            "@test:e2e:safe"
         ],
-        "tools-check": [
+        "test:comprehensive": [
+            "@test:unit",
+            "@test:integration",
+            "@test:feature",
+            "@test:arch"
+        ],
+        "test:coverage": "pest --coverage --coverage-html=coverage-html --order-by=depends",
+        "test:coverage:unit": "pest tests/Unit/ --coverage --coverage-html=coverage-html/unit",
+        "test:e2e": "pest tests/E2E/ --order-by=depends",
+        "test:e2e:safe": "pest tests/E2E/ --exclude-path=tests/E2E/OptimizedPerformanceAndLoadTest.php --exclude-path=tests/E2E/PerformanceAndLoadTest.php",
+        "test:fast": [
+            "@test:unit",
+            "@test:integration"
+        ],
+        "test:feature": "pest tests/Feature/ --order-by=depends",
+        "test:integration": "pest tests/Integration/ --order-by=depends",
+        "test:parallel": "pest --parallel --processes=4",
+        "test:performance": "pest tests/E2E/OptimizedPerformanceAndLoadTest.php tests/E2E/PerformanceAndLoadTest.php",
+        "test:stress": "pest --filter=stress",
+        "test:unit": "pest tests/Unit/ --order-by=depends,defects",
+        "test:unit:commands": "pest tests/Unit/Commands --order-by=depends",
+        "test:unit:compatibility": "pest tests/Unit/Compatibility",
+        "test:unit:contracts": "pest tests/Unit/Contracts",
+        "test:unit:core": [
+            "@test:unit:enums",
+            "@test:unit:exceptions",
+            "@test:unit:contracts"
+        ],
+        "test:unit:dependency": "pest tests/Unit/DependencyInjection",
+        "test:unit:enums": "pest tests/Unit/Enums",
+        "test:unit:exceptions": "pest tests/Unit/Exceptions",
+        "test:unit:logging": "pest tests/Unit/Logging",
+        "test:unit:providers": "pest tests/Unit/Providers",
+        "test:unit:services": [
+            "@test:unit:services:core",
+            "@test:unit:services:formatters",
+            "@test:unit:services:valueobjects"
+        ],
+        "test:unit:services:contracts": "pest tests/Unit/Services/Contracts",
+        "test:unit:services:core": "pest tests/Unit/Services --exclude-path=tests/Unit/Services/Contracts --exclude-path=tests/Unit/Services/Formatters --exclude-path=tests/Unit/Services/ValueObjects",
+        "test:unit:services:formatters": "pest tests/Unit/Services/Formatters",
+        "test:unit:services:valueobjects": "pest tests/Unit/Services/ValueObjects",
+        "tools:check": [
             "vendor/bin/phpstan --version",
             "vendor/bin/psalm --version",
             "vendor/bin/pint --version",
@@ -133,18 +212,5 @@
             "vendor/bin/composer-normalize --version"
         ]
     },
-    "config": {
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true,
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "ergebnis/composer-normalize": true,
-            "infection/extension-installer": true,
-            "pestphp/pest-plugin": true,
-            "php-http/discovery": true
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "type": "project"
 }

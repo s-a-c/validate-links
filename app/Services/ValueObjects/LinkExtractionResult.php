@@ -8,8 +8,22 @@ use App\Enums\ValidationScope;
 use InvalidArgumentException;
 use ValueError;
 
+/**
+ * Value object representing a link extracted from a document for validation.
+ *
+ * This class encapsulates all information about a discovered link including
+ * its location, scope, and associated metadata for validation processing.
+ */
 final readonly class LinkExtractionResult
 {
+    /**
+     * @param string $url The extracted URL to be validated
+     * @param string $text The link text or description
+     * @param int $lineNumber Line number where the link was found
+     * @param ValidationScope $scope Validation scope (internal, external, etc.)
+     * @param string|null $anchor Optional anchor/fragment identifier
+     * @param string|null $filePath Optional path to the source file
+     */
     public function __construct(
         public string $url,
         public string $text,
@@ -57,16 +71,31 @@ final readonly class LinkExtractionResult
         );
     }
 
+    /**
+     * Check if this is an internal link.
+     *
+     * @return bool True if the link scope is internal
+     */
     public function isInternal(): bool
     {
         return $this->scope === ValidationScope::INTERNAL;
     }
 
+    /**
+     * Check if this is an external link.
+     *
+     * @return bool True if the link scope is external
+     */
     public function isExternal(): bool
     {
         return $this->scope === ValidationScope::EXTERNAL;
     }
 
+    /**
+     * Check if this link has an anchor/fragment identifier.
+     *
+     * @return bool True if an anchor is present
+     */
     public function hasAnchor(): bool
     {
         return $this->anchor !== null;
@@ -87,6 +116,11 @@ final readonly class LinkExtractionResult
         ];
     }
 
+    /**
+     * Validate the link extraction result data.
+     *
+     * @throws InvalidArgumentException If URL is empty or line number is negative
+     */
     private function validate(): void
     {
         if (empty($this->url)) {
