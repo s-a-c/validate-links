@@ -11,7 +11,7 @@ use App\Commands\ValidateCommand;
 use App\Providers\AppServiceProvider;
 use App\Providers\ValidateLinksServiceProvider;
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Illuminate\Foundation\Configuration\Exceptions;
 use LaravelZero\Framework\Application;

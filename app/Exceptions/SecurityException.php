@@ -12,9 +12,9 @@ final class SecurityException extends ValidateLinksException
     /**
      * Create a security exception for a detected threat.
      *
-     * @param  string  $url  The URL where the threat was detected
-     * @param  string  $threatType  The type of threat detected
-     * @param  array<string, mixed>  $context  Additional context data
+     * @param string $url The URL where the threat was detected
+     * @param string $threatType The type of threat detected
+     * @param array<string, mixed> $context Additional context data
      */
     public static function threatDetected(string $url, string $threatType, array $context): static
     {
@@ -26,7 +26,7 @@ final class SecurityException extends ValidateLinksException
     /**
      * Create a security exception for a blacklisted domain.
      *
-     * @param  string  $domain  The blacklisted domain
+     * @param string $domain The blacklisted domain
      */
     public static function blacklistedDomain(string $domain): static
     {
@@ -43,8 +43,8 @@ final class SecurityException extends ValidateLinksException
     /**
      * Create a security exception for SSL violations.
      *
-     * @param  string  $url  The URL with SSL issues
-     * @param  string  $sslError  The SSL error description
+     * @param string $url The URL with SSL issues
+     * @param string $sslError The SSL error description
      */
     public static function sslViolation(string $url, string $sslError): static
     {

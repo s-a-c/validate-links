@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Test Refactoring Runner
+ * Test Refactoring Runner.
  *
  * Orchestrates the complete test suite refactoring process using all available tools.
  */
@@ -51,7 +51,7 @@ final class TestRefactoringRunner
         $criticalFiles = $this->findCriticalFiles();
 
         if (! empty($criticalFiles)) {
-            echo '❌ Critical syntax errors found in '.count($criticalFiles)." files:\n";
+            echo '❌ Critical syntax errors found in ' . count($criticalFiles) . " files:\n";
             foreach ($criticalFiles as $file) {
                 echo "  - {$file}\n";
             }
@@ -94,7 +94,7 @@ final class TestRefactoringRunner
         $testFiles = $this->findTestFiles();
 
         foreach ($testFiles as $file) {
-            $syntaxCheck = shell_exec('php -l '.escapeshellarg($file).' 2>&1');
+            $syntaxCheck = shell_exec('php -l ' . escapeshellarg($file) . ' 2>&1');
             if (mb_strpos($syntaxCheck, 'No syntax errors') === false) {
                 $criticalFiles[] = $file;
             }
@@ -107,7 +107,7 @@ final class TestRefactoringRunner
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator('tests/', RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator('tests/', RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -130,7 +130,7 @@ final class TestRefactoringRunner
         $totalFiles = count($testFiles);
 
         foreach ($testFiles as $file) {
-            $syntaxCheck = shell_exec('php -l '.escapeshellarg($file).' 2>&1');
+            $syntaxCheck = shell_exec('php -l ' . escapeshellarg($file) . ' 2>&1');
             if (mb_strpos($syntaxCheck, 'No syntax errors') === false) {
                 echo "  ❌ {$file}\n";
                 $syntaxErrors++;
@@ -189,7 +189,7 @@ final class TestRefactoringRunner
 
         foreach ($testFiles as $file) {
             // Check syntax
-            $syntaxCheck = shell_exec('php -l '.escapeshellarg($file).' 2>&1');
+            $syntaxCheck = shell_exec('php -l ' . escapeshellarg($file) . ' 2>&1');
             if (mb_strpos($syntaxCheck, 'No syntax errors') !== false) {
                 $stats['valid_files']++;
             }
@@ -209,7 +209,7 @@ final class TestRefactoringRunner
         // Count support classes
         if (is_dir('tests/Support/Doubles')) {
             $supportIterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator('tests/Support/Doubles', RecursiveDirectoryIterator::SKIP_DOTS)
+                new RecursiveDirectoryIterator('tests/Support/Doubles', RecursiveDirectoryIterator::SKIP_DOTS),
             );
 
             foreach ($supportIterator as $file) {
@@ -316,7 +316,7 @@ final class TestRefactoringRunner
 }
 
 // Main execution
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     $runner = new TestRefactoringRunner();
     $runner->run();
 }

@@ -22,7 +22,7 @@ final readonly class FormatterOptions
      * @param bool $colorOutput Whether to use colored output (where supported)
      * @param int $maxLineLength Maximum line length for text-based formats
      * @param bool $showProgress Whether to show progress indicators
-     * @param array<string, mixed> $customOptions Additional format-specific options
+     * @param CustomFormatterOptions $customOptions Additional format-specific options
      */
     public function __construct(
         public OutputFormat $format,
@@ -30,13 +30,13 @@ final readonly class FormatterOptions
         public bool $colorOutput = true,
         public int $maxLineLength = 120,
         public bool $showProgress = true,
-        public array $customOptions = [],
+        public CustomFormatterOptions $customOptions = new CustomFormatterOptions(),
     ) {
         $this->validate();
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public static function create(array $data): self
     {
@@ -49,8 +49,12 @@ final readonly class FormatterOptions
             }
         }
 
-        $customOptions = $data['custom_options'] ?? [];
-        /** @var array<string, mixed> $customOptions */
+        $customOptionsData = $data['custom_options'] ?? [];
+        /** @var array<string, mixed> $customOptionsArray */
+        $customOptionsArray = is_array($customOptionsData) ? $customOptionsData : [];
+        $customOptions = $customOptionsArray !== []
+            ? CustomFormatterOptions::create($customOptionsArray)
+            : new CustomFormatterOptions();
 
         return new self(
             format           : $format,
@@ -58,20 +62,21 @@ final readonly class FormatterOptions
             colorOutput      : (bool) ($data['color_output'] ?? true),
             maxLineLength    : is_numeric($data['max_line_length'] ?? null) ? (int) $data['max_line_length'] : 120,
             showProgress     : (bool) ($data['show_progress'] ?? true),
-            customOptions    : is_array($customOptions) ? $customOptions : [],
+            customOptions    : $customOptions,
         );
     }
 
     /**
      * Create a new instance with a different output format.
      *
-     * @param OutputFormat $format The new output format
+     * @param OutputFormat $outputFormat The new output format
+     *
      * @return self New FormatterOptions instance with updated format
      */
-    public function withFormat(OutputFormat $format): self
+    public function withFormat(OutputFormat $outputFormat): self
     {
         return new self(
-            format           : $format,
+            format           : $outputFormat,
             includeTimestamps: $this->includeTimestamps,
             colorOutput      : $this->colorOutput,
             maxLineLength    : $this->maxLineLength,
@@ -84,6 +89,7 @@ final readonly class FormatterOptions
      * Create a new instance with different color output setting.
      *
      * @param bool $colorOutput Whether to enable colored output
+     *
      * @return self New FormatterOptions instance with updated color setting
      */
     public function withColorOutput(bool $colorOutput): self
@@ -99,17 +105,14 @@ final readonly class FormatterOptions
     }
 
     /**
-     * Create a new instance with an additional custom option.
+     * Create a new instance with updated custom options.
      *
-     * @param string $key The option key
-     * @param mixed $value The option value
-     * @return self New FormatterOptions instance with added custom option
+     * @param CustomFormatterOptions $customOptions The new custom options
+     *
+     * @return self New FormatterOptions instance with updated custom options
      */
-    public function withCustomOption(string $key, mixed $value): self
+    public function withCustomOptions(CustomFormatterOptions $customOptions): self
     {
-        $customOptions = $this->customOptions;
-        $customOptions[$key] = $value;
-
         return new self(
             format           : $this->format,
             includeTimestamps: $this->includeTimestamps,
@@ -121,26 +124,57 @@ final readonly class FormatterOptions
     }
 
     /**
-     * Get a custom option value with optional default.
+     * Create a new instance with an additional custom header.
      *
-     * @param string $key The option key
-     * @param mixed $default Default value if option is not set
-     * @return mixed The option value or default
+     * @param string $key The header key
+     * @param string $value The header value
+     *
+     * @return self New FormatterOptions instance with added custom header
      */
-    public function getCustomOption(string $key, mixed $default = null): mixed
+    public function withCustomHeader(string $key, string $value): self
     {
-        return $this->customOptions[$key] ?? $default;
+        return new self(
+            format           : $this->format,
+            includeTimestamps: $this->includeTimestamps,
+            colorOutput      : $this->colorOutput,
+            maxLineLength    : $this->maxLineLength,
+            showProgress     : $this->showProgress,
+            customOptions    : $this->customOptions->withCustomHeader($key, $value),
+        );
     }
 
     /**
-     * Check if a custom option is set.
+     * Get the custom formatter options.
      *
-     * @param string $key The option key to check
-     * @return bool True if the option exists
+     * @return CustomFormatterOptions The custom options
      */
-    public function hasCustomOption(string $key): bool
+    public function getCustomOptions(): CustomFormatterOptions
     {
-        return array_key_exists($key, $this->customOptions);
+        return $this->customOptions;
+    }
+
+    /**
+     * Get a custom header value.
+     *
+     * @param string $key The header key
+     *
+     * @return string|null The header value or null if not set
+     */
+    public function getCustomHeader(string $key): ?string
+    {
+        return $this->customOptions->getCustomHeader($key);
+    }
+
+    /**
+     * Check if a custom header is set.
+     *
+     * @param string $key The header key to check
+     *
+     * @return bool True if the header exists
+     */
+    public function hasCustomHeader(string $key): bool
+    {
+        return $this->customOptions->hasCustomHeader($key);
     }
 
     /**
@@ -174,7 +208,7 @@ final readonly class FormatterOptions
             'color_output' => $this->colorOutput,
             'max_line_length' => $this->maxLineLength,
             'show_progress' => $this->showProgress,
-            'custom_options' => $this->customOptions,
+            'custom_options' => $this->customOptions->toArray(),
         ];
     }
 

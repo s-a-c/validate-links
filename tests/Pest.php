@@ -20,18 +20,16 @@ declare(strict_types=1);
 |
 */
 
-use Tests\TestCase;
-use Tests\Support\PestTestCase;
-use Tests\Support\Factories\MockFactory;
-use Tests\Support\Factories\DataFactory;
-use Tests\Support\Helpers\TestHelper;
-use Tests\Support\Builders\ValidationConfigBuilder;
-use Tests\Support\Doubles\TestDoubleFactory;
 use App\Enums\LinkStatus;
-use App\Enums\ValidationScope;
+use App\Services\ValueObjects\ValidationConfig;
 use App\Services\ValueObjects\ValidationResult;
 use App\Services\ValueObjects\ValidationResultCollection;
-use App\Services\ValueObjects\ValidationConfig;
+use Tests\Support\Builders\ValidationConfigBuilder;
+use Tests\Support\Doubles\TestDoubleFactory;
+use Tests\Support\Factories\DataFactory;
+use Tests\Support\Factories\MockFactory;
+use Tests\Support\PestTestCase;
+use Tests\TestCase;
 
 // Use optimized TestCase for all test directories
 uses(TestCase::class)->in('Unit', 'Feature', 'Integration', 'E2E', 'Architecture');
@@ -62,30 +60,30 @@ $GLOBALS['pest_mock_registry'] = [];
 $GLOBALS['pest_performance_metrics'] = [];
 
 /**
- * Intelligent beforeEach that only runs necessary setup
+ * Intelligent beforeEach that only runs necessary setup.
  */
-beforeEach(function () {
+beforeEach(function (): void {
     // Performance tracking
     $this->testStartTime = microtime(true);
     $this->testStartMemory = memory_get_usage(true);
-    
+
     // Clear previous test state efficiently
     clearTestState();
-    
+
     // Initialize only essential services
     initializeEssentialServices();
 })->in('Unit', 'Feature', 'Integration', 'E2E');
 
 /**
- * Efficient afterEach with intelligent cleanup
+ * Efficient afterEach with intelligent cleanup.
  */
-afterEach(function () {
+afterEach(function (): void {
     // Performance metrics collection
     recordTestMetrics($this);
-    
+
     // Intelligent cleanup - only clean what was used
     cleanupUsedResources();
-    
+
     // Memory management
     if (shouldRunGarbageCollection()) {
         gc_collect_cycles();
@@ -103,12 +101,12 @@ afterEach(function () {
 */
 
 /**
- * Clear test state efficiently
+ * Clear test state efficiently.
  */
 function clearTestState(): void
 {
     // Only clear if there's something to clear
-    if (!empty($GLOBALS['pest_mock_registry'])) {
+    if (! empty($GLOBALS['pest_mock_registry'])) {
         foreach ($GLOBALS['pest_mock_registry'] as $mock) {
             if (method_exists($mock, 'mockery_teardown')) {
                 $mock->mockery_teardown();
@@ -119,7 +117,7 @@ function clearTestState(): void
 }
 
 /**
- * Initialize only essential services
+ * Initialize only essential services.
  */
 function initializeEssentialServices(): void
 {
@@ -130,17 +128,17 @@ function initializeEssentialServices(): void
 }
 
 /**
- * Lazy-loaded mock creation with automatic registration
+ * Lazy-loaded mock creation with automatic registration.
  */
 function createMock(string $interface, array $config = []): object
 {
     $mockId = $interface . '_' . md5(serialize($config));
-    
+
     // Return existing mock if available
     if (isset($GLOBALS['pest_mock_registry'][$mockId])) {
         return $GLOBALS['pest_mock_registry'][$mockId];
     }
-    
+
     // Create new mock with minimal configuration
     $mock = match ($interface) {
         'App\Services\Contracts\LinkValidationInterface' => MockFactory::linkValidation($config),
@@ -148,15 +146,15 @@ function createMock(string $interface, array $config = []): object
         'App\Services\Contracts\ReportingInterface' => MockFactory::reporting($config),
         default => mock($interface),
     };
-    
+
     // Register for cleanup
     $GLOBALS['pest_mock_registry'][$mockId] = $mock;
-    
+
     return $mock;
 }
 
 /**
- * Efficient test data creation
+ * Efficient test data creation.
  */
 function createTestData(string $type, array $overrides = []): mixed
 {
@@ -170,40 +168,40 @@ function createTestData(string $type, array $overrides = []): mixed
 }
 
 /**
- * Memory-efficient temporary file creation
+ * Memory-efficient temporary file creation.
  */
 function createTestFile(string $content = '', string $extension = '.tmp'): string
 {
     static $tempFiles = [];
-    
+
     $tempFile = tempnam(sys_get_temp_dir(), 'pest_') . $extension;
     file_put_contents($tempFile, $content);
-    
+
     $tempFiles[] = $tempFile;
-    
+
     // Register cleanup
-    register_shutdown_function(function () use (&$tempFiles) {
+    register_shutdown_function(function () use (&$tempFiles): void {
         foreach ($tempFiles as $file) {
             if (file_exists($file)) {
                 unlink($file);
             }
         }
     });
-    
+
     return $tempFile;
 }
 
 /**
- * Cleanup used resources intelligently
+ * Cleanup used resources intelligently.
  */
 function cleanupUsedResources(): void
 {
     // Only cleanup what was actually used
     $registry = &$GLOBALS['pest_mock_registry'];
-    
-    if (!empty($registry)) {
+
+    if (! empty($registry)) {
         foreach ($registry as $key => $mock) {
-            if (method_exists($mock, 'mockery_getExpectationCount') && 
+            if (method_exists($mock, 'mockery_getExpectationCount') &&
                 $mock->mockery_getExpectationCount() > 0) {
                 // This mock was used, clean it up
                 unset($registry[$key]);
@@ -213,35 +211,35 @@ function cleanupUsedResources(): void
 }
 
 /**
- * Intelligent garbage collection decision
+ * Intelligent garbage collection decision.
  */
 function shouldRunGarbageCollection(): bool
 {
     static $testCount = 0;
     $testCount++;
-    
+
     // Run GC every 10 tests or if memory usage is high
     return $testCount % 10 === 0 || memory_get_usage(true) > 50 * 1024 * 1024;
 }
 
 /**
- * Record test performance metrics
+ * Record test performance metrics.
  */
 function recordTestMetrics(object $test): void
 {
-    if (!property_exists($test, 'testStartTime')) {
+    if (! property_exists($test, 'testStartTime')) {
         return;
     }
-    
+
     $executionTime = microtime(true) - $test->testStartTime;
     $memoryUsage = memory_get_usage(true) - $test->testStartMemory;
-    
+
     $GLOBALS['pest_performance_metrics'][] = [
         'execution_time' => $executionTime,
         'memory_usage' => $memoryUsage,
         'timestamp' => time(),
     ];
-    
+
     // Warn about slow tests
     if ($executionTime > 1.0) {
         echo "\n⚠️  Slow test detected: {$executionTime}s\n";
@@ -260,64 +258,64 @@ function recordTestMetrics(object $test): void
 expect()->extend('toBeValidationResult', function (?string $expectedStatus = null) {
     /** @var Pest\Expectation $this */
     $result = $this->value;
-    
+
     expect($result)->toBeInstanceOf(ValidationResult::class);
-    
+
     if ($expectedStatus !== null) {
         expect($result->getStatus()->value)->toBe($expectedStatus);
     }
-    
+
     return $this;
 });
 
 expect()->extend('toBeValidationCollection', function (?int $expectedCount = null) {
     /** @var Pest\Expectation $this */
     $collection = $this->value;
-    
+
     expect($collection)->toBeInstanceOf(ValidationResultCollection::class);
-    
+
     if ($expectedCount !== null) {
         expect($collection->count())->toBe($expectedCount);
     }
-    
+
     return $this;
 });
 
 expect()->extend('toBeValidUrl', function () {
     /** @var Pest\Expectation $this */
     $url = $this->value;
-    
+
     expect($url)->toBeString()
         ->and(filter_var($url, FILTER_VALIDATE_URL))->not->toBeFalse();
-    
+
     return $this;
 });
 
 expect()->extend('toHaveValidLinkStatus', function () {
     /** @var Pest\Expectation $this */
     $status = $this->value;
-    
+
     $validStatuses = array_column(LinkStatus::cases(), 'value');
     expect($status)->toBeIn($validStatuses);
-    
+
     return $this;
 });
 
 expect()->extend('toBeWithinPerformanceThreshold', function (float $maxSeconds = 1.0) {
     /** @var Pest\Expectation $this */
     $executionTime = $this->value;
-    
+
     expect($executionTime)->toBeLessThan($maxSeconds);
-    
+
     return $this;
 });
 
 expect()->extend('toUseMemoryEfficiently', function (int $maxBytes = 10 * 1024 * 1024) {
     /** @var Pest\Expectation $this */
     $memoryUsage = $this->value;
-    
+
     expect($memoryUsage)->toBeLessThan($maxBytes);
-    
+
     return $this;
 });
 
@@ -332,7 +330,7 @@ expect()->extend('toUseMemoryEfficiently', function (int $maxBytes = 10 * 1024 *
 */
 
 /**
- * Quick mock creation for common interfaces
+ * Quick mock creation for common interfaces.
  */
 function mockLinkValidation(array $config = []): object
 {
@@ -350,7 +348,7 @@ function mockReporting(array $config = []): object
 }
 
 /**
- * Quick test data creation
+ * Quick test data creation.
  */
 function validationConfig(array $overrides = []): ValidationConfig
 {
@@ -373,7 +371,7 @@ function testUrls(string $type = 'mixed'): array
 }
 
 /**
- * Advanced builder pattern helpers
+ * Advanced builder pattern helpers.
  */
 function buildValidationConfig(): ValidationConfigBuilder
 {
@@ -396,7 +394,7 @@ function ciConfig(): ValidationConfig
 }
 
 /**
- * Advanced test double creation
+ * Advanced test double creation.
  */
 function linkValidationWithState(array $config = []): object
 {
@@ -429,15 +427,15 @@ function recordingSpy(string $interface): object
 }
 
 /**
- * Performance testing utilities
+ * Performance testing utilities.
  */
 function measurePerformance(callable $callback): array
 {
     $startTime = microtime(true);
     $startMemory = memory_get_usage(true);
-    
+
     $result = $callback();
-    
+
     return [
         'result' => $result,
         'execution_time' => microtime(true) - $startTime,
@@ -448,29 +446,29 @@ function measurePerformance(callable $callback): array
 function expectPerformant(callable $callback, float $maxTime = 1.0, int $maxMemory = 10 * 1024 * 1024): void
 {
     $metrics = measurePerformance($callback);
-    
+
     expect($metrics['execution_time'])->toBeWithinPerformanceThreshold($maxTime);
     expect($metrics['memory_usage'])->toUseMemoryEfficiently($maxMemory);
 }
 
 /**
- * Simplified HTTP client mocking
+ * Simplified HTTP client mocking.
  */
 function mockHttpClient(array $responses = []): object
 {
-    $mock = mock(\GuzzleHttp\Client::class);
-    
+    $mock = mock(GuzzleHttp\Client::class);
+
     foreach ($responses as $url => $response) {
         $mock->shouldReceive('request')
             ->with('GET', $url)
             ->andReturn($response);
     }
-    
+
     return $mock;
 }
 
 /**
- * Database testing helpers
+ * Database testing helpers.
  */
 function withFreshDatabase(callable $callback): mixed
 {
@@ -481,7 +479,7 @@ function withFreshDatabase(callable $callback): mixed
 }
 
 /**
- * Environment testing helpers
+ * Environment testing helpers.
  */
 function withTestEnvironment(array $env, callable $callback): mixed
 {
@@ -498,7 +496,7 @@ function withTestEnvironment(array $env, callable $callback): mixed
 */
 
 /**
- * Get performance metrics for current test session
+ * Get performance metrics for current test session.
  */
 function getPerformanceMetrics(): array
 {
@@ -506,25 +504,25 @@ function getPerformanceMetrics(): array
 }
 
 /**
- * Generate performance report
+ * Generate performance report.
  */
 function generatePerformanceReport(): string
 {
     $metrics = getPerformanceMetrics();
-    
+
     if (empty($metrics)) {
         return "No performance metrics collected.\n";
     }
-    
+
     $totalTests = count($metrics);
     $totalTime = array_sum(array_column($metrics, 'execution_time'));
     $totalMemory = array_sum(array_column($metrics, 'memory_usage'));
     $avgTime = $totalTime / $totalTests;
     $avgMemory = $totalMemory / $totalTests;
-    
-    $slowTests = array_filter($metrics, fn($m) => $m['execution_time'] > 1.0);
-    $memoryHeavyTests = array_filter($metrics, fn($m) => $m['memory_usage'] > 10 * 1024 * 1024);
-    
+
+    $slowTests = array_filter($metrics, fn ($m) => $m['execution_time'] > 1.0);
+    $memoryHeavyTests = array_filter($metrics, fn ($m) => $m['memory_usage'] > 10 * 1024 * 1024);
+
     return sprintf(
         "Performance Report:\n" .
         "- Total Tests: %d\n" .
@@ -540,12 +538,12 @@ function generatePerformanceReport(): string
         $totalMemory / 1024 / 1024,
         $avgMemory / 1024 / 1024,
         count($slowTests),
-        count($memoryHeavyTests)
+        count($memoryHeavyTests),
     );
 }
 
 // Register shutdown function to display performance report
-register_shutdown_function(function () {
+register_shutdown_function(function (): void {
     if (env('PEST_PERFORMANCE_REPORT', false)) {
         echo "\n" . generatePerformanceReport();
     }

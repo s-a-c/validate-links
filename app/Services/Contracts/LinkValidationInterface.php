@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
-use App\Enums\LinkStatus;
 use App\Enums\ValidationScope;
+use App\Services\ValueObjects\LinkCollection;
 use App\Services\ValueObjects\ValidationConfig;
 use App\Services\ValueObjects\ValidationResult;
 use App\Services\ValueObjects\ValidationResultCollection;
@@ -16,26 +16,24 @@ interface LinkValidationInterface
     /**
      * Validate a single link.
      */
-    public function validateLink(string $url, ValidationConfig $config): ValidationResult;
+    public function validateLink(string $url, ValidationConfig $validationConfig): ValidationResult;
 
     /**
      * Validate multiple links concurrently.
      *
-     * @param  string[]  $urls
+     * @param string[] $urls
      */
-    public function validateLinks(array $urls, ValidationConfig $config): ValidationResultCollection;
+    public function validateLinks(array $urls, ValidationConfig $validationConfig): ValidationResultCollection;
 
     /**
      * Validate links in a file.
      */
-    public function validateFile(string $filePath, ValidationConfig $config): ValidationResultCollection;
+    public function validateFile(string $filePath, ValidationConfig $validationConfig): ValidationResultCollection;
 
     /**
      * Extract links from content.
-     *
-     * @return array<array{url: string, text: string, line: int}>
      */
-    public function extractLinks(string $content): array;
+    public function extractLinks(string $content): LinkCollection;
 
     /**
      * Check if URL is valid format.
@@ -57,15 +55,15 @@ interface LinkValidationInterface
     /**
      * Check if a specific scope is supported.
      */
-    public function supportsScope(ValidationScope $scope): bool;
+    public function supportsScope(ValidationScope $validationScope): bool;
 
     /**
      * Validate links by specific scopes.
      *
-     * @param  ValidationScope[]  $scopes
-     * @param  string[]  $targets
+     * @param ValidationScope[] $scopes
+     * @param string[] $targets
      */
-    public function validateByScopes(array $scopes, array $targets, ValidationConfig $config): ValidationResult;
+    public function validateByScopes(array $scopes, array $targets, ValidationConfig $validationConfig): ValidationResult;
 
     /**
      * Get validation statistics grouped by LinkStatus.
@@ -80,7 +78,7 @@ interface LinkValidationInterface
     /**
      * Validate multiple files.
      *
-     * @param  string[]  $files
+     * @param string[] $files
      */
-    public function validateFiles(array $files, ValidationConfig $config): ValidationResultCollection;
+    public function validateFiles(array $files, ValidationConfig $validationConfig): ValidationResultCollection;
 }

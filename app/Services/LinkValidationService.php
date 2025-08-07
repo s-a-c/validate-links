@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\ArrayKey;
+use App\Enums\HttpMethod;
 use App\Enums\LinkStatus;
 use App\Enums\LinkType;
 use App\Enums\ValidationScope;
@@ -11,6 +13,7 @@ use App\Exceptions\SecurityException;
 use App\Services\Contracts\GitHubAnchorInterface;
 use App\Services\Contracts\LinkValidationInterface;
 use App\Services\Contracts\SecurityValidationInterface;
+use App\Services\ValueObjects\LinkCollection;
 use App\Services\ValueObjects\ValidationConfig;
 use App\Services\ValueObjects\ValidationResult;
 use App\Services\ValueObjects\ValidationResultCollection;
@@ -19,12 +22,12 @@ use App\Services\ValueObjects\ValidationSummary;
 use Exception;
 use RuntimeException;
 
-class LinkValidationService implements LinkValidationInterface
+final class LinkValidationService implements LinkValidationInterface
 {
     public ?GitHubAnchorInterface $gitHubAnchorService = null;
 
     public function __construct(
-        private readonly SecurityValidationInterface $security
+        private readonly SecurityValidationInterface $security,
     ) {}
 
     /**
@@ -32,7 +35,9 @@ class LinkValidationService implements LinkValidationInterface
      *
      * @param string $filePath The path to the file to validate
      * @param ValidationConfig $config The validation configuration to use
+     *
      * @return ValidationResultCollection Collection of validation results for all links found
+     *
      * @throws SecurityException If the file path fails security validation
      * @throws RuntimeException If the file cannot be read
      */
@@ -46,7 +51,7 @@ class LinkValidationService implements LinkValidationInterface
                 ValidationResult::create(
                     url: $filePath,
                     status: LinkStatus::BROKEN,
-                    message: 'File not found'
+                    message: 'File not found',
                 ),
             ]);
         }
@@ -65,25 +70,25 @@ class LinkValidationService implements LinkValidationInterface
             throw new RuntimeException("Unable to read file: {$filePath}");
         }
         $links = $this->extractLinks($content);
-        $categorized = $this->categorizeLinks($links);
+        $categorized = $this->categorizeLinks($links->toArray());
 
         if ($config->shouldValidateInternal()) {
-            $internalLinks = $categorized['internal'] ?? [];
+            $internalLinks = $categorized[LinkType::INTERNAL->value] ?? [];
             $internalResults = $this->validateInternalLinks(
                 $internalLinks,
-                dirname($filePath)
+                dirname($filePath),
             );
             $results = array_merge($results, $internalResults);
         }
 
         if ($config->shouldValidateExternal()) {
-            $externalLinks = $categorized['external'] ?? [];
+            $externalLinks = $categorized[LinkType::EXTERNAL->value] ?? [];
             $externalResults = $this->validateExternalLinksInternal($externalLinks);
             $results = array_merge($results, $externalResults);
         }
 
         if ($config->shouldValidateAnchors()) {
-            $anchorLinks = $categorized['anchor'] ?? [];
+            $anchorLinks = $categorized[LinkType::ANCHOR->value] ?? [];
             $anchorResults = $this->validateAnchorLinks($anchorLinks, $content);
             $results = array_merge($results, $anchorResults);
         }
@@ -109,13 +114,13 @@ class LinkValidationService implements LinkValidationInterface
             broken: $broken,
             timeouts: 0,
             securityRisks: 0,
-            redirects: 0
+            redirects: 0,
         );
 
         return ValidationSummary::create(
             filePath: $filePath,
-            results: $results,
-            statistics: $statistics
+            validationResultCollection: $results,
+            validationStatistics: $statistics,
         );
     }
 
@@ -124,6 +129,7 @@ class LinkValidationService implements LinkValidationInterface
      *
      * @param string $url The URL to validate
      * @param ValidationConfig $config The validation configuration to use
+     *
      * @return ValidationResult The validation result for the link
      */
     public function validateLink(string $url, ValidationConfig $config): ValidationResult
@@ -142,6 +148,7 @@ class LinkValidationService implements LinkValidationInterface
      *
      * @param array<string> $urls Array of URLs to validate
      * @param ValidationConfig $config The validation configuration to use
+     *
      * @return ValidationResultCollection Collection of validation results
      */
     public function validateLinks(array $urls, ValidationConfig $config): ValidationResultCollection
@@ -155,10 +162,7 @@ class LinkValidationService implements LinkValidationInterface
         return ValidationResultCollection::fromArray($results);
     }
 
-    /**
-     * @return array<array{url: string, text: string, line: int}>
-     */
-    public function extractLinks(string $content): array
+    public function extractLinks(string $content): LinkCollection
     {
         $links = [];
         $lines = explode("\n", $content);
@@ -168,9 +172,9 @@ class LinkValidationService implements LinkValidationInterface
             preg_match_all('/\[([^\]]*)\]\(([^)]+)\)/', $line, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
                 $links[] = [
-                    'url' => $match[2],
-                    'text' => $match[1],
-                    'line' => $lineNumber + 1,
+                    ArrayKey::URL->value => $match[2],
+                    ArrayKey::TEXT->value => $match[1],
+                    ArrayKey::LINE->value => $lineNumber + 1,
                 ];
             }
 
@@ -178,14 +182,14 @@ class LinkValidationService implements LinkValidationInterface
             preg_match_all('/<a\s+href=["\']([^"\']+)["\'][^>]*>([^<]*)<\/a>/i', $line, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
                 $links[] = [
-                    'url' => $match[1],
-                    'text' => $match[2],
-                    'line' => $lineNumber + 1,
+                    ArrayKey::URL->value => $match[1],
+                    ArrayKey::TEXT->value => $match[2],
+                    ArrayKey::LINE->value => $lineNumber + 1,
                 ];
             }
         }
 
-        return $links;
+        return LinkCollection::fromArray($links);
     }
 
     /**
@@ -216,25 +220,26 @@ class LinkValidationService implements LinkValidationInterface
     }
 
     /**
-     * @param  array<array{url: string, text: string, line: int}>  $links
+     * @param array<array{url: string, text: string, line: int}> $links
+     *
      * @return array<string, array<array{url: string, text: string, line: int}>>
      */
     public function categorizeLinks(array $links): array
     {
         $categorized = [
-            'internal' => [],
-            'external' => [],
-            'anchor' => [],
+            LinkType::INTERNAL->value => [],
+            LinkType::EXTERNAL->value => [],
+            LinkType::ANCHOR->value => [],
         ];
 
         foreach ($links as $link) {
-            $url = $link['url'];
+            $url = $link[ArrayKey::URL->value];
             $linkType = $this->classifyLink($url);
 
             match ($linkType) {
-                LinkType::ANCHOR => $categorized['anchor'][] = $link,
-                LinkType::EXTERNAL => $categorized['external'][] = $link,
-                LinkType::INTERNAL, LinkType::CROSS_REFERENCE => $categorized['internal'][] = $link,
+                LinkType::ANCHOR => $categorized[LinkType::ANCHOR->value][] = $link,
+                LinkType::EXTERNAL => $categorized[LinkType::EXTERNAL->value][] = $link,
+                LinkType::INTERNAL, LinkType::CROSS_REFERENCE => $categorized[LinkType::INTERNAL->value][] = $link,
             };
         }
 
@@ -242,7 +247,8 @@ class LinkValidationService implements LinkValidationInterface
     }
 
     /**
-     * @param  string[]  $files
+     * @param string[] $files
+     *
      * @return list<array<string, mixed>>
      */
     public function validateCrossReferences(array $files): array
@@ -253,7 +259,7 @@ class LinkValidationService implements LinkValidationInterface
         foreach ($files as $file) {
             $links = $this->extractLinks($file);
 
-            foreach ($links as $link) {
+            foreach ($links->toArray() as $link) {
                 if ($this->isCrossReference($link)) {
                     $crossReferences[] = $this->validateCrossReference($link, $allAnchors);
                 }
@@ -267,6 +273,7 @@ class LinkValidationService implements LinkValidationInterface
      * Check if a URL has a valid format.
      *
      * @param string $url The URL to validate
+     *
      * @return bool True if the URL format is valid, false otherwise
      */
     public function isValidUrl(string $url): bool
@@ -286,6 +293,7 @@ class LinkValidationService implements LinkValidationInterface
      * Normalize a URL by trimming whitespace.
      *
      * @param string $url The URL to normalize
+     *
      * @return string The normalized URL
      */
     public function normalizeUrl(string $url): string
@@ -313,6 +321,7 @@ class LinkValidationService implements LinkValidationInterface
      * Check if a validation scope is supported.
      *
      * @param ValidationScope $scope The scope to check
+     *
      * @return bool True if the scope is supported, false otherwise
      */
     public function supportsScope(ValidationScope $scope): bool
@@ -326,6 +335,7 @@ class LinkValidationService implements LinkValidationInterface
      * @param array<ValidationScope> $scopes Array of validation scopes to use
      * @param array<string> $targets Array of targets to validate
      * @param ValidationConfig $config The validation configuration to use
+     *
      * @return ValidationResult The validation result
      */
     public function validateByScopes(array $scopes, array $targets, ValidationConfig $config): ValidationResult
@@ -337,7 +347,7 @@ class LinkValidationService implements LinkValidationInterface
                 status: LinkStatus::INVALID_FORMAT,
                 scope: ValidationScope::ALL,
                 error: 'No targets provided',
-                responseTime: 0.0
+                responseTime: 0.0,
             );
         }
 
@@ -359,7 +369,7 @@ class LinkValidationService implements LinkValidationInterface
             valid: 0,
             broken: 0,
             timeouts: 0,
-            securityRisks: 0
+            securityRisks: 0,
         );
     }
 
@@ -367,7 +377,6 @@ class LinkValidationService implements LinkValidationInterface
      * Set the timeout for validation operations.
      *
      * @param int $seconds The timeout in seconds
-     * @return void
      */
     public function setTimeout(int $seconds): void
     {
@@ -380,6 +389,7 @@ class LinkValidationService implements LinkValidationInterface
      *
      * @param array<string> $files Array of file paths to validate
      * @param ValidationConfig $config The validation configuration to use
+     *
      * @return ValidationResultCollection Collection of validation results for all files
      */
     public function validateFiles(array $files, ValidationConfig $config): ValidationResultCollection
@@ -399,7 +409,7 @@ class LinkValidationService implements LinkValidationInterface
     /**
      * Validate external links.
      *
-     * @param  array<string>  $urls
+     * @param array<string> $urls
      */
     public function validateExternalLinks(array $urls, ValidationConfig $config): ValidationResultCollection
     {
@@ -424,7 +434,7 @@ class LinkValidationService implements LinkValidationInterface
                 url: $url,
                 status: LinkStatus::VALID,
                 scope: ValidationScope::ANCHOR,
-                responseTime: 0.0
+                responseTime: 0.0,
             );
         }
 
@@ -433,7 +443,7 @@ class LinkValidationService implements LinkValidationInterface
             url: $url,
             status: LinkStatus::VALID,
             scope: ValidationScope::ANCHOR,
-            responseTime: 0.0
+            responseTime: 0.0,
         );
     }
 
@@ -449,7 +459,7 @@ class LinkValidationService implements LinkValidationInterface
                 status: LinkStatus::INVALID_FORMAT,
                 scope: ValidationScope::EXTERNAL,
                 error: 'Invalid URL format',
-                responseTime: 0.0
+                responseTime: 0.0,
             );
         }
 
@@ -460,7 +470,7 @@ class LinkValidationService implements LinkValidationInterface
                 status: LinkStatus::INVALID_FORMAT,
                 scope: ValidationScope::EXTERNAL,
                 error: 'Invalid URL format',
-                responseTime: 0.0
+                responseTime: 0.0,
             );
         }
 
@@ -473,7 +483,7 @@ class LinkValidationService implements LinkValidationInterface
             url: $url,
             status: LinkStatus::VALID,
             scope: ValidationScope::EXTERNAL,
-            responseTime: 0.0
+            responseTime: 0.0,
         );
     }
 
@@ -489,7 +499,7 @@ class LinkValidationService implements LinkValidationInterface
                 status: LinkStatus::INVALID_FORMAT,
                 scope: ValidationScope::INTERNAL,
                 error: 'Invalid URL format',
-                responseTime: 0.0
+                responseTime: 0.0,
             );
         }
 
@@ -502,7 +512,7 @@ class LinkValidationService implements LinkValidationInterface
             url: $url,
             status: LinkStatus::VALID,
             scope: ValidationScope::INTERNAL,
-            responseTime: 0.0
+            responseTime: 0.0,
         );
     }
 
@@ -523,7 +533,7 @@ class LinkValidationService implements LinkValidationInterface
 
         // Scheme (http, https, etc.)
         if (isset($parsed['scheme'])) {
-            $result .= $parsed['scheme'].'://';
+            $result .= $parsed['scheme'] . '://';
         }
 
         // Host (should remain as-is for IDN domains)
@@ -533,7 +543,7 @@ class LinkValidationService implements LinkValidationInterface
 
         // Port
         if (isset($parsed['port'])) {
-            $result .= ':'.$parsed['port'];
+            $result .= ':' . $parsed['port'];
         }
 
         // Path (encode unicode characters)
@@ -552,12 +562,12 @@ class LinkValidationService implements LinkValidationInterface
             foreach ($queryParams as $key => $value) {
                 $encodedParams[rawurlencode((string) $key)] = rawurlencode(is_array($value) ? implode(',', $value) : (string) $value);
             }
-            $result .= '?'.http_build_query($encodedParams, '', '&', PHP_QUERY_RFC3986);
+            $result .= '?' . http_build_query($encodedParams, '', '&', PHP_QUERY_RFC3986);
         }
 
         // Fragment (encode unicode characters)
         if (isset($parsed['fragment'])) {
-            $result .= '#'.rawurlencode($parsed['fragment']);
+            $result .= '#' . rawurlencode($parsed['fragment']);
         }
 
         return $result;
@@ -566,7 +576,8 @@ class LinkValidationService implements LinkValidationInterface
     /**
      * Validate internal links.
      *
-     * @param  array<array{url: string, text: string, line: int}>  $links
+     * @param array<array{url: string, text: string, line: int}> $links
+     *
      * @return ValidationResult[]
      */
     private function validateInternalLinks(array $links, string $basePath): array
@@ -574,11 +585,11 @@ class LinkValidationService implements LinkValidationInterface
         $results = [];
 
         foreach ($links as $link) {
-            $url = $link['url'];
+            $url = $link[ArrayKey::URL->value];
             $startTime = microtime(true);
 
             // Build the full path for both security validation and file existence check
-            $fullPath = $basePath.'/'.mb_ltrim($url, './');
+            $fullPath = $basePath . '/' . mb_ltrim($url, './');
 
             // Check security validation first - but only for potentially dangerous paths
             // Skip security validation for simple relative paths that don't contain '..'
@@ -589,7 +600,7 @@ class LinkValidationService implements LinkValidationInterface
                         status: LinkStatus::SECURITY_VIOLATION,
                         scope: ValidationScope::INTERNAL,
                         error: 'Path failed security validation',
-                        responseTime: microtime(true) - $startTime
+                        responseTime: microtime(true) - $startTime,
                     );
 
                     continue;
@@ -604,7 +615,7 @@ class LinkValidationService implements LinkValidationInterface
                     $url,
                     ValidationScope::INTERNAL,
                     LinkStatus::NOT_FOUND,
-                    'File not found'
+                    'File not found',
                 );
             }
         }
@@ -615,7 +626,8 @@ class LinkValidationService implements LinkValidationInterface
     /**
      * Validate external links (internal method).
      *
-     * @param  array<array{url: string, text: string, line: int}>  $links
+     * @param array<array{url: string, text: string, line: int}> $links
+     *
      * @return ValidationResult[]
      */
     private function validateExternalLinksInternal(array $links): array
@@ -623,7 +635,7 @@ class LinkValidationService implements LinkValidationInterface
         $results = [];
 
         foreach ($links as $link) {
-            $results[] = $this->validateSingleExternalLink($link['url']);
+            $results[] = $this->validateSingleExternalLink($link[ArrayKey::URL->value]);
         }
 
         return $results;
@@ -632,7 +644,8 @@ class LinkValidationService implements LinkValidationInterface
     /**
      * Validate anchor links.
      *
-     * @param  array<array{url: string, text: string, line: int}>  $links
+     * @param array<array{url: string, text: string, line: int}> $links
+     *
      * @return ValidationResult[]
      */
     private function validateAnchorLinks(array $links, string $content): array
@@ -640,17 +653,17 @@ class LinkValidationService implements LinkValidationInterface
         $results = [];
 
         foreach ($links as $link) {
-            $anchor = mb_ltrim($link['url'], '#');
+            $anchor = mb_ltrim($link[ArrayKey::URL->value], '#');
 
             // Simple check if anchor exists in content
             if (str_contains($content, "id=\"{$anchor}\"") || str_contains($content, "#{$anchor}")) {
-                $results[] = ValidationResult::success($link['url'], ValidationScope::ANCHOR);
+                $results[] = ValidationResult::success($link[ArrayKey::URL->value], ValidationScope::ANCHOR);
             } else {
                 $results[] = ValidationResult::failure(
-                    $link['url'],
+                    $link[ArrayKey::URL->value],
                     ValidationScope::ANCHOR,
                     LinkStatus::NOT_FOUND,
-                    'Anchor not found'
+                    'Anchor not found',
                 );
             }
         }
@@ -673,7 +686,7 @@ class LinkValidationService implements LinkValidationInterface
                     status: LinkStatus::SECURITY_VIOLATION,
                     scope: ValidationScope::EXTERNAL,
                     error: 'URL failed security validation',
-                    responseTime: microtime(true) - $startTime
+                    responseTime: microtime(true) - $startTime,
                 );
             }
 
@@ -685,8 +698,8 @@ class LinkValidationService implements LinkValidationInterface
             // Simple HTTP request to validate external link
             $context = stream_context_create([
                 'http' => [
-                    'method' => 'HEAD',
-                    'timeout' => 10,
+                    ArrayKey::METHOD->value => HttpMethod::HEAD->value,
+                    ArrayKey::TIMEOUT->value => 10,
                     'user_agent' => 'Link Validator/1.0',
                     'follow_location' => true,
                     'max_redirects' => 5,
@@ -702,7 +715,7 @@ class LinkValidationService implements LinkValidationInterface
                     status: LinkStatus::BROKEN,
                     scope: ValidationScope::EXTERNAL,
                     error: 'Failed to connect to URL',
-                    responseTime: $responseTime
+                    responseTime: $responseTime,
                 );
             }
 
@@ -716,7 +729,7 @@ class LinkValidationService implements LinkValidationInterface
                     status: LinkStatus::VALID,
                     scope: ValidationScope::EXTERNAL,
                     httpStatusCode: $httpCode,
-                    responseTime: $responseTime
+                    responseTime: $responseTime,
                 );
             }
             $status = match (true) {
@@ -732,16 +745,15 @@ class LinkValidationService implements LinkValidationInterface
                 scope: ValidationScope::EXTERNAL,
                 error: "HTTP {$httpCode}",
                 httpStatusCode: $httpCode,
-                responseTime: $responseTime
+                responseTime: $responseTime,
             );
-
         } catch (Exception $e) {
             return new ValidationResult(
                 url: $url,
                 status: LinkStatus::BROKEN,
                 scope: ValidationScope::EXTERNAL,
                 error: $e->getMessage(),
-                responseTime: microtime(true) - $startTime
+                responseTime: microtime(true) - $startTime,
             );
         }
     }
@@ -759,7 +771,7 @@ class LinkValidationService implements LinkValidationInterface
                 scope: ValidationScope::EXTERNAL,
                 error: 'Not Found',
                 httpStatusCode: 404,
-                responseTime: $responseTime
+                responseTime: $responseTime,
             );
         }
 
@@ -770,7 +782,7 @@ class LinkValidationService implements LinkValidationInterface
                 scope: ValidationScope::EXTERNAL,
                 error: 'Forbidden',
                 httpStatusCode: 403,
-                responseTime: $responseTime
+                responseTime: $responseTime,
             );
         }
 
@@ -780,7 +792,7 @@ class LinkValidationService implements LinkValidationInterface
                 status: LinkStatus::TIMEOUT,
                 scope: ValidationScope::EXTERNAL,
                 error: 'Request timeout',
-                responseTime: $responseTime
+                responseTime: $responseTime,
             );
         }
 
@@ -790,7 +802,7 @@ class LinkValidationService implements LinkValidationInterface
                 status: LinkStatus::INVALID_FORMAT,
                 scope: ValidationScope::EXTERNAL,
                 error: 'Invalid URL format',
-                responseTime: $responseTime
+                responseTime: $responseTime,
             );
         }
 
@@ -800,7 +812,7 @@ class LinkValidationService implements LinkValidationInterface
             status: LinkStatus::VALID,
             scope: ValidationScope::EXTERNAL,
             httpStatusCode: 200,
-            responseTime: $responseTime
+            responseTime: $responseTime,
         );
     }
 
@@ -822,7 +834,7 @@ class LinkValidationService implements LinkValidationInterface
                     status: LinkStatus::SECURITY_VIOLATION,
                     scope: ValidationScope::INTERNAL,
                     error: 'Path failed security validation',
-                    responseTime: microtime(true) - $startTime
+                    responseTime: microtime(true) - $startTime,
                 );
             }
 
@@ -835,7 +847,7 @@ class LinkValidationService implements LinkValidationInterface
                     url: $url,
                     status: LinkStatus::VALID,
                     scope: ValidationScope::INTERNAL,
-                    responseTime: $responseTime
+                    responseTime: $responseTime,
                 );
             }
 
@@ -844,22 +856,22 @@ class LinkValidationService implements LinkValidationInterface
                 status: LinkStatus::NOT_FOUND,
                 scope: ValidationScope::INTERNAL,
                 error: 'File not found',
-                responseTime: $responseTime
+                responseTime: $responseTime,
             );
-
         } catch (Exception $e) {
             return new ValidationResult(
                 url: $url,
                 status: LinkStatus::BROKEN,
                 scope: ValidationScope::INTERNAL,
                 error: $e->getMessage(),
-                responseTime: microtime(true) - $startTime
+                responseTime: microtime(true) - $startTime,
             );
         }
     }
 
     /**
-     * @param  string[]  $files
+     * @param string[] $files
+     *
      * @return array<string, string[]>
      */
     private function extractAllAnchors(array $files): array
@@ -880,49 +892,50 @@ class LinkValidationService implements LinkValidationInterface
     }
 
     /**
-     * @param  array<string, mixed>  $link
-     * @param  array<string, string[]>  $allAnchors
+     * @param array<string, mixed> $link
+     * @param array<string, string[]> $allAnchors
+     *
      * @return array<string, mixed>
      */
     private function validateCrossReference(array $link, array $allAnchors): array
     {
         // Implementation for cross-reference validation
-        $url = isset($link['url']) && is_string($link['url']) ? $link['url'] : '';
+        $url = isset($link[ArrayKey::URL->value]) && is_string($link[ArrayKey::URL->value]) ? $link[ArrayKey::URL->value] : '';
 
         $targetFile = $this->resolveTargetFile($url);
         $targetAnchor = $this->extractAnchorFromUrl($url);
 
         if (! isset($allAnchors[$targetFile])) {
             return [
-                'url' => $url,
-                'status' => 'broken',
-                'reason' => 'Target file not found',
+                ArrayKey::URL->value => $url,
+                ArrayKey::STATUS->value => 'broken',
+                ArrayKey::REASON->value => 'Target file not found',
             ];
         }
 
         if ($targetAnchor && ! in_array($targetAnchor, $allAnchors[$targetFile])) {
             return [
-                'url' => $url,
-                'status' => 'broken',
-                'reason' => 'Target anchor not found',
+                ArrayKey::URL->value => $url,
+                ArrayKey::STATUS->value => 'broken',
+                ArrayKey::REASON->value => 'Target anchor not found',
             ];
         }
 
         return [
-            'url' => $url,
-            'status' => 'valid',
-            'reason' => null,
+            ArrayKey::URL->value => $url,
+            ArrayKey::STATUS->value => 'valid',
+            ArrayKey::REASON->value => null,
         ];
     }
 
     /**
      * Check if a link is a cross-reference.
      *
-     * @param  array<string, mixed>  $link
+     * @param array<string, mixed> $link
      */
     private function isCrossReference(array $link): bool
     {
-        $url = isset($link['url']) && is_string($link['url']) ? $link['url'] : '';
+        $url = isset($link[ArrayKey::URL->value]) && is_string($link[ArrayKey::URL->value]) ? $link[ArrayKey::URL->value] : '';
 
         // Cross-references are internal links that contain anchors
         return ! str_starts_with($url, 'http') && str_contains($url, '#');

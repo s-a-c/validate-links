@@ -12,18 +12,18 @@ use Illuminate\Http\Response;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-class Handler extends ExceptionHandler
+final class Handler extends ExceptionHandler
 {
-    public function render($request, Throwable $exception)
+    public function render($request, Throwable $throwable)
     {
-        if ($exception instanceof ValidateLinksException) {
-            return $this->renderValidateLinksException($exception);
+        if ($throwable instanceof ValidateLinksException) {
+            return $this->renderValidateLinksException($throwable);
         }
 
-        return parent::render($request, $exception);
+        return parent::render($request, $throwable);
     }
 
-    private function renderValidateLinksException(ValidateLinksException $exception): Response
+    private function renderValidateLinksException(ValidateLinksException $validateLinksException): Response
     {
         // Try to get console output for CLI context
         try {
@@ -31,11 +31,11 @@ class Handler extends ExceptionHandler
             if (method_exists($kernel, 'getOutput')) {
                 $output = $kernel->getOutput();
                 if ($output instanceof OutputInterface) {
-                    $output->writeln("<error>Error [{$exception->getErrorCode()}]: {$exception->getMessage()}</error>");
+                    $output->writeln("<error>Error [{$validateLinksException->getErrorCode()}]: {$validateLinksException->getMessage()}</error>");
 
-                    if ($exception->getContext()) {
+                    if ($validateLinksException->getContext() !== []) {
                         $output->writeln('<comment>Context:</comment>');
-                        foreach ($exception->getContext() as $key => $value) {
+                        foreach ($validateLinksException->getContext() as $key => $value) {
                             $valueStr = match (true) {
                                 is_string($value) => $value,
                                 is_scalar($value) => (string) $value,
@@ -48,7 +48,7 @@ class Handler extends ExceptionHandler
 
                     if (config('app.debug')) {
                         $output->writeln('<comment>Stack trace:</comment>');
-                        $output->writeln($exception->getTraceAsString());
+                        $output->writeln($validateLinksException->getTraceAsString());
                     }
                 }
             }
@@ -57,7 +57,7 @@ class Handler extends ExceptionHandler
         }
 
         // Return a proper HTTP response for web contexts
-        $message = "Error [{$exception->getErrorCode()}]: {$exception->getMessage()}";
+        $message = "Error [{$validateLinksException->getErrorCode()}]: {$validateLinksException->getMessage()}";
 
         return new Response($message, 500, ['Content-Type' => 'text/plain']);
     }

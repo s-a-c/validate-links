@@ -10,7 +10,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\text;
 
-class ConfigCommand extends Command
+final class ConfigCommand extends Command
 {
     protected $signature = 'config
         {--init : Initialize configuration file}
@@ -37,7 +37,7 @@ class ConfigCommand extends Command
     {
         $this->info('🔧 Initializing validate-links configuration');
 
-        $configPath = getcwd().'/validate-links.json';
+        $configPath = getcwd() . '/validate-links.json';
 
         if (file_exists($configPath) && ! confirm("Configuration file already exists at {$configPath}. Overwrite?", false)) {
             $this->info('Configuration initialization cancelled');
@@ -78,7 +78,7 @@ class ConfigCommand extends Command
         $scope = multiselect(
             'Default validation scope',
             ['internal', 'anchor', 'cross-reference', 'external'],
-            ['internal', 'anchor']
+            ['internal', 'anchor'],
         );
 
         $timeout = (int) text('External link timeout (seconds)', '30');

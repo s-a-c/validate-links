@@ -27,7 +27,7 @@ enum FileType: string
      */
     public static function getSupportedExtensions(): array
     {
-        return array_map(fn (FileType $type) => $type->value, self::cases());
+        return array_map(fn (FileType $fileType) => $fileType->value, self::cases());
     }
 
     public function getDescription(): string

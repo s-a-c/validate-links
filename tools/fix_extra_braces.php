@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Fix Extra Braces in Test Files v2.0
+ * Fix Extra Braces in Test Files v2.0.
  *
  * This script fixes the common issue where test functions have extra opening braces
  * after the function declaration, which is a common artifact from PHPUnit to Pest conversion.
@@ -42,7 +42,7 @@ function fixExtraBraces(string $filePath): bool
         // Pattern 1: function () { followed by standalone {
         if (preg_match('/function\s*\(\)\s*\{\s*$/', mb_trim($line))) {
             if (isset($lines[$i + 1]) && mb_trim($lines[$i + 1]) === '{') {
-                echo '  Fixing extra brace on line '.($i + 2)." (function pattern)\n";
+                echo '  Fixing extra brace on line ' . ($i + 2) . " (function pattern)\n";
                 array_splice($lines, $i + 1, 1);
                 $fixed = true;
                 $fixCount++;
@@ -52,7 +52,7 @@ function fixExtraBraces(string $filePath): bool
         // Pattern 2: test('...', function () { followed by standalone {
         if (preg_match('/test\s*\([^)]+\),?\s*function\s*\(\)\s*\{\s*$/', mb_trim($line))) {
             if (isset($lines[$i + 1]) && mb_trim($lines[$i + 1]) === '{') {
-                echo '  Fixing extra brace on line '.($i + 2)." (test pattern)\n";
+                echo '  Fixing extra brace on line ' . ($i + 2) . " (test pattern)\n";
                 array_splice($lines, $i + 1, 1);
                 $fixed = true;
                 $fixCount++;
@@ -62,7 +62,7 @@ function fixExtraBraces(string $filePath): bool
         // Pattern 3: describe('...', function () { followed by standalone {
         if (preg_match('/describe\s*\([^)]+\),?\s*function\s*\(\)\s*\{\s*$/', mb_trim($line))) {
             if (isset($lines[$i + 1]) && mb_trim($lines[$i + 1]) === '{') {
-                echo '  Fixing extra brace on line '.($i + 2)." (describe pattern)\n";
+                echo '  Fixing extra brace on line ' . ($i + 2) . " (describe pattern)\n";
                 array_splice($lines, $i + 1, 1);
                 $fixed = true;
                 $fixCount++;
@@ -72,7 +72,7 @@ function fixExtraBraces(string $filePath): bool
 
     if ($fixed) {
         // Create backup with timestamp
-        $backupPath = "{$filePath}.backup.".date('Y-m-d-H-i-s');
+        $backupPath = "{$filePath}.backup." . date('Y-m-d-H-i-s');
         copy($filePath, $backupPath);
 
         // Write fixed content
@@ -85,11 +85,10 @@ function fixExtraBraces(string $filePath): bool
     echo "ℹ️  No extra braces found in {$filePath}\n";
 
     return true;
-
 }
 
 /**
- * Check if file is legitimate test support infrastructure
+ * Check if file is legitimate test support infrastructure.
  */
 function isTestSupportFile(string $filePath): bool
 {
@@ -100,7 +99,7 @@ function isTestSupportFile(string $filePath): bool
 }
 
 // Main execution
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     if (isset($argv[1])) {
         // Fix specific file
         $targetFile = $argv[1];
@@ -108,11 +107,11 @@ if (php_sapi_name() === 'cli') {
 
         if (fixExtraBraces($targetFile)) {
             // Validate syntax after fix
-            $syntaxCheck = shell_exec('php -l '.escapeshellarg($targetFile).' 2>&1');
+            $syntaxCheck = shell_exec('php -l ' . escapeshellarg($targetFile) . ' 2>&1');
             if (mb_strpos($syntaxCheck, 'No syntax errors') !== false) {
                 echo "✅ Syntax validation passed\n";
             } else {
-                echo '❌ Syntax errors remain: '.mb_trim($syntaxCheck)."\n";
+                echo '❌ Syntax errors remain: ' . mb_trim($syntaxCheck) . "\n";
             }
         }
     } else {
@@ -121,7 +120,7 @@ if (php_sapi_name() === 'cli') {
 
         $testFiles = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator('tests/', RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator('tests/', RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -145,6 +144,6 @@ if (php_sapi_name() === 'cli') {
         echo "\n📊 Summary:\n";
         echo "- Total files processed: {$totalFiles}\n";
         echo "- Files with fixes applied: {$fixedCount}\n";
-        echo '- Success rate: '.($totalFiles > 0 ? round(($fixedCount / $totalFiles) * 100, 1) : 0)."%\n";
+        echo '- Success rate: ' . ($totalFiles > 0 ? round(($fixedCount / $totalFiles) * 100, 1) : 0) . "%\n";
     }
 }

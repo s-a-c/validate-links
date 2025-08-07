@@ -12,7 +12,6 @@ use Symfony\Component\Console\Command\DumpCompletionCommand;
 use Symfony\Component\Console\Command\HelpCommand;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Command
@@ -51,7 +50,6 @@ return [
     */
 
     'add' => [
-        //
     ],
 
     /*
@@ -88,7 +86,5 @@ return [
     */
 
     'remove' => [
-        //
     ],
-
 ];

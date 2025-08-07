@@ -24,13 +24,13 @@ final readonly class ValidationBatch
         public array $links,
         public ValidationConfig $config,
         public int $batchId,
-        public int $priority = 0
+        public int $priority = 0,
     ) {
         $this->validate();
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public static function create(array $data): self
     {
@@ -38,12 +38,16 @@ final readonly class ValidationBatch
         $rawLinks = $data['links'] ?? [];
 
         if (is_array($rawLinks)) {
-            foreach ($rawLinks as $linkData) {
-                if ($linkData instanceof LinkExtractionResult) {
-                    $links[] = $linkData;
-                } elseif (is_array($linkData)) {
-                    /** @var array<string, mixed> $linkData */
-                    $links[] = LinkExtractionResult::create($linkData);
+            foreach ($rawLinks as $rawLink) {
+                if ($rawLink instanceof LinkExtractionResult) {
+                    $links[] = $rawLink;
+                } elseif (is_array($rawLink)) {
+                    // Ensure we have a proper string-keyed array
+                    $stringKeyedArray = [];
+                    foreach ($rawLink as $key => $value) {
+                        $stringKeyedArray[(string) $key] = $value;
+                    }
+                    $links[] = LinkExtractionResult::create($stringKeyedArray);
                 }
             }
         }
@@ -57,7 +61,7 @@ final readonly class ValidationBatch
             links: $links,
             config: $config,
             batchId: is_numeric($data['batch_id'] ?? null) ? (int) $data['batch_id'] : 0,
-            priority: is_numeric($data['priority'] ?? null) ? (int) $data['priority'] : 0
+            priority: is_numeric($data['priority'] ?? null) ? (int) $data['priority'] : 0,
         );
     }
 
@@ -78,7 +82,7 @@ final readonly class ValidationBatch
      */
     public function getUrls(): array
     {
-        return array_map(fn (LinkExtractionResult $link) => $link->url, $this->links);
+        return array_map(fn (LinkExtractionResult $linkExtractionResult): string => $linkExtractionResult->url, $this->links);
     }
 
     /**
@@ -87,7 +91,7 @@ final readonly class ValidationBatch
     public function toArray(): array
     {
         return [
-            'links' => array_map(fn (LinkExtractionResult $link) => $link->toArray(), $this->links),
+            'links' => array_map(fn (LinkExtractionResult $linkExtractionResult): array => $linkExtractionResult->toArray(), $this->links),
             'config' => $this->config->toArray(),
             'batch_id' => $this->batchId,
             'priority' => $this->priority,
@@ -102,7 +106,7 @@ final readonly class ValidationBatch
      */
     private function validate(): void
     {
-        if (empty($this->links)) {
+        if ($this->links === []) {
             throw new InvalidArgumentException('Batch must contain at least one link');
         }
 

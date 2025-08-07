@@ -14,32 +14,33 @@ final readonly class ValidationSummary
 {
     /**
      * @param string $filePath Path to the validated file
-     * @param ValidationResultCollection $results Collection of validation results
-     * @param ValidationStatistics $statistics Aggregated statistics for the validation
+     * @param ValidationResultCollection $validationResultCollection Collection of validation results
+     * @param ValidationStatistics $validationStatistics Aggregated statistics for the validation
      */
     public function __construct(
         private string $filePath,
-        private ValidationResultCollection $results,
-        private ValidationStatistics $statistics
+        private ValidationResultCollection $validationResultCollection,
+        private ValidationStatistics $validationStatistics,
     ) {}
 
     /**
      * Create a new ValidationSummary instance.
      *
      * @param string $filePath Path to the validated file
-     * @param ValidationResultCollection $results Collection of validation results
-     * @param ValidationStatistics $statistics Aggregated statistics for the validation
+     * @param ValidationResultCollection $validationResultCollection Collection of validation results
+     * @param ValidationStatistics $validationStatistics Aggregated statistics for the validation
+     *
      * @return self New ValidationSummary instance
      */
     public static function create(
         string $filePath,
-        ValidationResultCollection $results,
-        ValidationStatistics $statistics
+        ValidationResultCollection $validationResultCollection,
+        ValidationStatistics $validationStatistics,
     ): self {
         return new self(
             filePath: $filePath,
-            results: $results,
-            statistics: $statistics
+            validationResultCollection: $validationResultCollection,
+            validationStatistics: $validationStatistics,
         );
     }
 
@@ -50,12 +51,12 @@ final readonly class ValidationSummary
 
     public function getResults(): ValidationResultCollection
     {
-        return $this->results;
+        return $this->validationResultCollection;
     }
 
     public function getStatistics(): ValidationStatistics
     {
-        return $this->statistics;
+        return $this->validationStatistics;
     }
 
     /**
@@ -65,7 +66,7 @@ final readonly class ValidationSummary
      */
     public function isValid(): bool
     {
-        return ! $this->statistics->hasIssues();
+        return ! $this->validationStatistics->hasIssues();
     }
 
     /**
@@ -75,7 +76,7 @@ final readonly class ValidationSummary
      */
     public function getBrokenCount(): int
     {
-        return $this->statistics->getBroken();
+        return $this->validationStatistics->getBroken();
     }
 
     /**
@@ -88,13 +89,13 @@ final readonly class ValidationSummary
             'valid' => $this->isValid(),
             'broken_count' => $this->getBrokenCount(),
             'statistics' => [
-                'total' => $this->statistics->getTotal(),
-                'valid' => $this->statistics->getValid(),
-                'broken' => $this->statistics->getBroken(),
-                'timeouts' => $this->statistics->getTimeouts(),
-                'security_risks' => $this->statistics->getSecurityRisks(),
-                'redirects' => $this->statistics->getRedirects(),
-                'success_rate' => $this->statistics->getSuccessRate(),
+                'total' => $this->validationStatistics->getTotal(),
+                'valid' => $this->validationStatistics->getValid(),
+                'broken' => $this->validationStatistics->getBroken(),
+                'timeouts' => $this->validationStatistics->getTimeouts(),
+                'security_risks' => $this->validationStatistics->getSecurityRisks(),
+                'redirects' => $this->validationStatistics->getRedirects(),
+                'success_rate' => $this->validationStatistics->getSuccessRate(),
             ],
         ];
     }

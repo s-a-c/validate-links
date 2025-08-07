@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Enhanced Test File Fixer v2.0
+ * Enhanced Test File Fixer v2.0.
  *
  * This tool systematically fixes test files with intelligent detection by:
  * 1. Analyzing syntax errors and patterns with smart filtering
@@ -79,7 +79,7 @@ final class TestFileFixer
 
         $backupPath = null;
         if ($needsChanges) {
-            $backupPath = $filePath.'.backup.'.date('Y-m-d-H-i-s');
+            $backupPath = $filePath . '.backup.' . date('Y-m-d-H-i-s');
             copy($filePath, $backupPath);
         }
 
@@ -133,7 +133,7 @@ final class TestFileFixer
         ];
 
         // Check syntax
-        $syntaxCheck = shell_exec('php -l '.escapeshellarg($filePath).' 2>&1');
+        $syntaxCheck = shell_exec('php -l ' . escapeshellarg($filePath) . ' 2>&1');
         $analysis['syntax_valid'] = mb_strpos($syntaxCheck, 'No syntax errors') !== false;
 
         // Skip detailed analysis for test support files - they're legitimate
@@ -189,7 +189,7 @@ final class TestFileFixer
     }
 
     /**
-     * Check if file is legitimate test support infrastructure
+     * Check if file is legitimate test support infrastructure.
      */
     private function isTestSupportFile(string $filePath): bool
     {
@@ -225,7 +225,7 @@ final class TestFileFixer
         }
 
         // Validate fix
-        $syntaxCheck = shell_exec('php -l '.escapeshellarg($filePath).' 2>&1');
+        $syntaxCheck = shell_exec('php -l ' . escapeshellarg($filePath) . ' 2>&1');
         $isFixed = mb_strpos($syntaxCheck, 'No syntax errors') !== false;
 
         if ($isFixed) {
@@ -235,10 +235,9 @@ final class TestFileFixer
             return true;
         }
         echo "  ❌ Could not fix syntax errors automatically\n";
-        echo '    Error: '.mb_trim($syntaxCheck)."\n";
+        echo '    Error: ' . mb_trim($syntaxCheck) . "\n";
 
         return false;
-
     }
 
     private function fixMissingSemicolons(string $content): string
@@ -331,7 +330,7 @@ final class TestFileFixer
             // Remove everything after the Pest section
             $pestLines = array_slice($lines, 0, $pestEndLine + 1);
 
-            return implode("\n", $pestLines)."\n";
+            return implode("\n", $pestLines) . "\n";
         }
 
         return $content;
@@ -342,10 +341,10 @@ final class TestFileFixer
         echo "  🔄 Converting PHPUnit to Pest syntax...\n";
 
         // Use the existing conversion tool
-        $result = shell_exec('cd '.dirname(__DIR__).' && php tools/convert_phpunit_to_pest.php '.escapeshellarg($filePath).' 2>&1');
+        $result = shell_exec('cd ' . dirname(__DIR__) . ' && php tools/convert_phpunit_to_pest.php ' . escapeshellarg($filePath) . ' 2>&1');
 
         // Validate conversion
-        $syntaxCheck = shell_exec('php -l '.escapeshellarg($filePath).' 2>&1');
+        $syntaxCheck = shell_exec('php -l ' . escapeshellarg($filePath) . ' 2>&1');
         $isFixed = mb_strpos($syntaxCheck, 'No syntax errors') !== false;
 
         if ($isFixed) {
@@ -354,15 +353,14 @@ final class TestFileFixer
 
             return true;
         }
-        echo '  ❌ Conversion failed: '.mb_trim($syntaxCheck)."\n";
+        echo '  ❌ Conversion failed: ' . mb_trim($syntaxCheck) . "\n";
 
         return false;
-
     }
 
     /**
      * Convert trait method calls to inline Pest syntax
-     * Based on successful patterns from ValidationConfigTest.php and ValidationResultTest.php
+     * Based on successful patterns from ValidationConfigTest.php and ValidationResultTest.php.
      */
     private function convertTraitMethodCalls(string $filePath, array $analysis): bool
     {
@@ -406,7 +404,7 @@ final class TestFileFixer
                 // Replace placeholders with actual captured groups
                 $result = $replacement;
                 for ($i = 1; $i < count($matches); $i++) {
-                    $result = str_replace('$'.$i, $matches[$i], $result);
+                    $result = str_replace('$' . $i, $matches[$i], $result);
                 }
 
                 return $result;
@@ -420,7 +418,7 @@ final class TestFileFixer
         }
 
         // Validate conversion
-        $syntaxCheck = shell_exec('php -l '.escapeshellarg($filePath).' 2>&1');
+        $syntaxCheck = shell_exec('php -l ' . escapeshellarg($filePath) . ' 2>&1');
         $isFixed = mb_strpos($syntaxCheck, 'No syntax errors') !== false;
 
         if ($isFixed) {
@@ -429,10 +427,9 @@ final class TestFileFixer
 
             return true;
         }
-        echo '  ❌ Conversion failed: '.mb_trim($syntaxCheck)."\n";
+        echo '  ❌ Conversion failed: ' . mb_trim($syntaxCheck) . "\n";
 
         return false;
-
     }
 
     private function extractEmbeddedClasses(string $filePath, array $analysis): bool
@@ -468,7 +465,7 @@ final class TestFileFixer
 
         // Determine target directory based on file path
         $targetDir = $this->determineTargetDirectory($filePath);
-        $targetFile = $targetDir.'/'.$classInfo['name'].'.php';
+        $targetFile = $targetDir . '/' . $classInfo['name'] . '.php';
 
         // Create target directory
         if (! is_dir($targetDir)) {
@@ -514,16 +511,16 @@ final class TestFileFixer
     private function determineTargetDirectory(string $filePath): string
     {
         if (mb_strpos($filePath, 'Contracts') !== false) {
-            return $this->supportDir.'/Contracts';
+            return $this->supportDir . '/Contracts';
         }
         if (mb_strpos($filePath, 'Commands') !== false) {
-            return $this->supportDir.'/Commands';
+            return $this->supportDir . '/Commands';
         }
         if (mb_strpos($filePath, 'Services') !== false) {
-            return $this->supportDir.'/Services';
+            return $this->supportDir . '/Services';
         }
 
-        return $this->supportDir.'/General';
+        return $this->supportDir . '/General';
     }
 
     private function generateNamespace(string $targetDir): string
@@ -588,7 +585,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline immutability check
+     * Generate inline immutability check.
      */
     private function generateImmutabilityCheck(string $object): string
     {
@@ -604,7 +601,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline constructor check
+     * Generate inline constructor check.
      */
     private function generateConstructorCheck(string $className, string $expectedParams): string
     {
@@ -627,7 +624,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline getters check
+     * Generate inline getters check.
      */
     private function generateGettersCheck(string $object, string $expectedGetters): string
     {
@@ -648,7 +645,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline toArray check
+     * Generate inline toArray check.
      */
     private function generateToArrayCheck(string $object, string $expectedKeys): string
     {
@@ -667,7 +664,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline serializable check
+     * Generate inline serializable check.
      */
     private function generateSerializableCheck(string $object): string
     {
@@ -680,7 +677,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline validation check
+     * Generate inline validation check.
      */
     private function generateValidationCheck(string $className, string $invalidData): string
     {
@@ -692,7 +689,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline equality check
+     * Generate inline equality check.
      */
     private function generateEqualityCheck(string $object1, string $object2, string $shouldBeEqual): string
     {
@@ -701,11 +698,10 @@ final class TestFileFixer
         }
 
         return "expect({$object1})->not->toEqual({$object2});";
-
     }
 
     /**
-     * Generate inline string representation check
+     * Generate inline string representation check.
      */
     private function generateStringRepresentationCheck(string $object): string
     {
@@ -720,7 +716,7 @@ final class TestFileFixer
     }
 
     /**
-     * Generate inline JSON representation check
+     * Generate inline JSON representation check.
      */
     private function generateJsonRepresentationCheck(string $object): string
     {
@@ -741,7 +737,7 @@ final class TestFileFixer
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -786,8 +782,8 @@ final class TestFileFixer
     private function generateReport(): void
     {
         echo "\n📊 Refactoring Complete!\n";
-        echo '✅ Fixed files: '.count($this->fixedFiles)."\n";
-        echo '❌ Errors: '.count($this->errors)."\n";
+        echo '✅ Fixed files: ' . count($this->fixedFiles) . "\n";
+        echo '❌ Errors: ' . count($this->errors) . "\n";
 
         // Generate detailed report
         $this->saveDetailedReport();
@@ -826,10 +822,10 @@ final class TestFileFixer
 
         // Summary
         $report .= "## Summary\n";
-        $report .= '- Files processed: '.(count($this->fixedFiles) + count($this->errors))."\n";
-        $report .= '- Successfully fixed: '.count($this->fixedFiles)."\n";
-        $report .= '- Errors encountered: '.count($this->errors)."\n";
-        $report .= '- Success rate: '.(count($this->fixedFiles) > 0 ? round((count($this->fixedFiles) / (count($this->fixedFiles) + count($this->errors))) * 100, 1) : 0)."%\n\n";
+        $report .= '- Files processed: ' . (count($this->fixedFiles) + count($this->errors)) . "\n";
+        $report .= '- Successfully fixed: ' . count($this->fixedFiles) . "\n";
+        $report .= '- Errors encountered: ' . count($this->errors) . "\n";
+        $report .= '- Success rate: ' . (count($this->fixedFiles) > 0 ? round((count($this->fixedFiles) / (count($this->fixedFiles) + count($this->errors))) * 100, 1) : 0) . "%\n\n";
 
         // Fixed files
         if (! empty($this->fixedFiles)) {
@@ -876,9 +872,9 @@ final class TestFileFixer
         $syntaxErrors = 0;
 
         foreach ($testFiles as $file) {
-            $syntaxCheck = shell_exec('php -l '.escapeshellarg($file).' 2>&1');
+            $syntaxCheck = shell_exec('php -l ' . escapeshellarg($file) . ' 2>&1');
             if (mb_strpos($syntaxCheck, 'No syntax errors') === false) {
-                echo "  ❌ {$file}: ".mb_trim($syntaxCheck)."\n";
+                echo "  ❌ {$file}: " . mb_trim($syntaxCheck) . "\n";
                 $syntaxErrors++;
             }
         }
@@ -892,7 +888,7 @@ final class TestFileFixer
 }
 
 // Main execution
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     $fixer = new TestFileFixer();
 
     if (isset($argv[1])) {

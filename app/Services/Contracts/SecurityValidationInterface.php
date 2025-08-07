@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use App\Services\ValueObjects\SecurityConfiguration;
+
 interface SecurityValidationInterface
 {
     /**
@@ -33,8 +35,6 @@ interface SecurityValidationInterface
 
     /**
      * Get security configuration.
-     *
-     * @return array<string, mixed>
      */
-    public function getSecurityConfig(): array;
+    public function getSecurityConfig(): SecurityConfiguration;
 }

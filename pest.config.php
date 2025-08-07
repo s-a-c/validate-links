@@ -134,7 +134,7 @@ return [
             '*Tests.php',
         ],
     ],
-    
+
     // Advanced PEST patterns and lazy initialization
     'lazy_initialization' => [
         'enabled' => true,
@@ -142,7 +142,7 @@ return [
         'auto_cleanup' => true,
         'memory_threshold' => '50M', // Clear cache when memory usage exceeds threshold
     ],
-    
+
     // Test double configuration
     'test_doubles' => [
         'auto_cleanup' => true,
@@ -150,7 +150,7 @@ return [
         'interaction_recording' => env('PEST_RECORD_INTERACTIONS', false),
         'realistic_behaviors' => true,
     ],
-    
+
     // Builder pattern configuration
     'builders' => [
         'fluent_interface' => true,

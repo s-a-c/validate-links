@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Enhanced PHPUnit to Pest Converter v2.0
+ * Enhanced PHPUnit to Pest Converter v2.0.
  *
  * This tool converts PHPUnit syntax to Pest syntax with intelligent detection:
  * - Converts PHPUnit test methods to Pest test functions
@@ -22,14 +22,14 @@ declare(strict_types=1);
 function convertPhpUnitToPest(string $filePath): bool
 {
     if (! file_exists($filePath)) {
-        echo "File not found: $filePath\n";
+        echo "File not found: {$filePath}\n";
 
         return false;
     }
 
     // Skip test support files - they're legitimate infrastructure
     if (isTestSupportFile($filePath)) {
-        echo "Skipping test support file: $filePath\n";
+        echo "Skipping test support file: {$filePath}\n";
 
         return true;
     }
@@ -80,7 +80,7 @@ function convertPhpUnitToPest(string $filePath): bool
 
             if ($braceCount <= 0 && preg_match('/^\s*}\s*$/', $line)) {
                 // End of method
-                $newLines[] = str_repeat(' ', 4).'});';
+                $newLines[] = str_repeat(' ', 4) . '});';
                 $inPhpUnitMethod = false;
 
                 continue;
@@ -95,30 +95,30 @@ function convertPhpUnitToPest(string $filePath): bool
         $newContent = implode("\n", $newLines);
 
         // Create backup with timestamp
-        $backupPath = "{$filePath}.backup.".date('Y-m-d-H-i-s');
+        $backupPath = "{$filePath}.backup." . date('Y-m-d-H-i-s');
         copy($filePath, $backupPath);
 
         // Write converted content
         file_put_contents($filePath, $newContent);
 
-        echo "Converted $filePath\n";
+        echo "Converted {$filePath}\n";
 
         // Validate syntax
-        $syntaxCheck = shell_exec('php -l '.escapeshellarg($filePath).' 2>&1');
+        $syntaxCheck = shell_exec('php -l ' . escapeshellarg($filePath) . ' 2>&1');
         if (mb_strpos($syntaxCheck, 'No syntax errors') === false) {
-            echo 'Warning: Syntax errors after conversion: '.mb_trim($syntaxCheck)."\n";
+            echo 'Warning: Syntax errors after conversion: ' . mb_trim($syntaxCheck) . "\n";
 
             return false;
         }
     } else {
-        echo "No PHPUnit syntax found in $filePath\n";
+        echo "No PHPUnit syntax found in {$filePath}\n";
     }
 
     return true;
 }
 
 /**
- * Check if file is legitimate test support infrastructure
+ * Check if file is legitimate test support infrastructure.
  */
 function isTestSupportFile(string $filePath): bool
 {
@@ -197,7 +197,7 @@ function convertAssertions(string $line): string
 }
 
 // Main execution
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     $targetFile = $argv[1] ?? 'tests/Unit/Commands/ValidateCommandTest.php';
 
     if (convertPhpUnitToPest($targetFile)) {

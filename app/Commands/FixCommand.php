@@ -10,7 +10,7 @@ use App\Services\ValueObjects\ValidationConfig;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\info;
 
-class FixCommand extends BaseValidationCommand
+final class FixCommand extends BaseValidationCommand
 {
     protected $signature = 'fix
         {paths* : Paths to fix}
@@ -58,7 +58,7 @@ class FixCommand extends BaseValidationCommand
     }
 
     private function handleAutomaticFix(
-        ValidationConfig $config
+        ValidationConfig $config,
     ): int {
         if ($config->isDryRun()) {
             $this->info('🔍 DRY RUN: Preview of fixes');

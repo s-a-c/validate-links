@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\ArrayKey;
 use App\Services\Contracts\StatisticsInterface;
+use App\Services\ValueObjects\BrokenLinksCollection;
+use App\Services\ValueObjects\ProcessedFilesCollection;
 use App\Services\ValueObjects\ValidationStatistics;
 
-class StatisticsService implements StatisticsInterface
+final class StatisticsService implements StatisticsInterface
 {
     /**
      * @var array{total: int, valid: int, invalid: int, files_processed: int, total_links: int, start_time: string}
@@ -34,16 +37,16 @@ class StatisticsService implements StatisticsInterface
      */
     public function recordValidation(string $url, bool $isValid, ?string $error = null): void
     {
-        $this->statistics['total']++;
+        $this->statistics[ArrayKey::TOTAL->value]++;
 
         if ($isValid) {
-            $this->statistics['valid']++;
+            $this->statistics[ArrayKey::VALID->value]++;
         } else {
-            $this->statistics['invalid']++;
+            $this->statistics[ArrayKey::INVALID->value]++;
             $this->brokenLinks[] = [
-                'url' => $url,
-                'error' => $error,
-                'timestamp' => now()->toISOString(),
+                ArrayKey::URL->value => $url,
+                ArrayKey::ERROR->value => $error,
+                ArrayKey::TIMESTAMP->value => now()->toISOString(),
             ];
         }
     }
@@ -54,45 +57,44 @@ class StatisticsService implements StatisticsInterface
     public function recordFileProcessed(string $filePath, int $linkCount): void
     {
         $this->processedFiles[] = [
-            'file' => $filePath,
-            'link_count' => $linkCount,
-            'timestamp' => now()->toISOString() ?? '',
+            ArrayKey::FILE->value => $filePath,
+            ArrayKey::LINK_COUNT->value => $linkCount,
+            ArrayKey::TIMESTAMP->value => now()->toISOString() ?? '',
         ];
 
-        $this->statistics['files_processed']++;
-        $this->statistics['total_links'] += $linkCount;
+        $this->statistics[ArrayKey::FILES_PROCESSED->value]++;
+        $this->statistics[ArrayKey::TOTAL_LINKS->value] += $linkCount;
     }
 
     /**
-     * Get validation statistics.
+     * Get validation statistics as DTO.
      */
-    public function getStatistics(): array
+    public function getStatistics(): ValidationStatistics
     {
-        return array_merge($this->statistics, [
-            'success_rate' => $this->getSuccessRate(),
-            'broken_links_count' => count($this->brokenLinks),
-            'processed_files_count' => count($this->processedFiles),
-        ]);
+        return ValidationStatistics::fromCounts(
+            total: $this->statistics[ArrayKey::TOTAL->value],
+            valid: $this->statistics[ArrayKey::VALID->value],
+            broken: $this->statistics[ArrayKey::INVALID->value],
+            timeouts: 0, // Not currently tracked separately
+            securityRisks: 0, // Not currently tracked separately
+            redirects: 0, // Not currently tracked
+        );
     }
 
     /**
-     * Get broken links.
-     *
-     * @return array<string, mixed>
+     * Get broken links as collection.
      */
-    public function getBrokenLinks(): array
+    public function getBrokenLinks(): BrokenLinksCollection
     {
-        return ['broken_links' => $this->brokenLinks];
+        return BrokenLinksCollection::fromArray($this->brokenLinks);
     }
 
     /**
-     * Get processed files.
-     *
-     * @return array<string, mixed>
+     * Get processed files as collection.
      */
-    public function getProcessedFiles(): array
+    public function getProcessedFiles(): ProcessedFilesCollection
     {
-        return ['processed_files' => $this->processedFiles];
+        return ProcessedFilesCollection::fromArray($this->processedFiles);
     }
 
     /**
@@ -101,11 +103,11 @@ class StatisticsService implements StatisticsInterface
     public function reset(): void
     {
         $this->statistics = [
-            'total' => 0,
-            'valid' => 0,
-            'invalid' => 0,
-            'files_processed' => 0,
-            'total_links' => 0,
+            ArrayKey::TOTAL->value => 0,
+            ArrayKey::VALID->value => 0,
+            ArrayKey::INVALID->value => 0,
+            ArrayKey::FILES_PROCESSED->value => 0,
+            ArrayKey::TOTAL_LINKS->value => 0,
             'start_time' => now()->toISOString() ?? '',
         ];
 
@@ -118,11 +120,11 @@ class StatisticsService implements StatisticsInterface
      */
     public function getSuccessRate(): float
     {
-        if ($this->statistics['total'] === 0) {
+        if ($this->statistics[ArrayKey::TOTAL->value] === 0) {
             return 0.0;
         }
 
-        return round(($this->statistics['valid'] / $this->statistics['total']) * 100, 2);
+        return round(($this->statistics[ArrayKey::VALID->value] / $this->statistics[ArrayKey::TOTAL->value]) * 100, 2);
     }
 
     /**
@@ -131,12 +133,12 @@ class StatisticsService implements StatisticsInterface
     public function getStatusStatistics(): ValidationStatistics
     {
         return ValidationStatistics::fromCounts(
-            total: $this->statistics['total'],
-            valid: $this->statistics['valid'],
-            broken: $this->statistics['invalid'],
+            total: $this->statistics[ArrayKey::TOTAL->value],
+            valid: $this->statistics[ArrayKey::VALID->value],
+            broken: $this->statistics[ArrayKey::INVALID->value],
             timeouts: 0, // Not currently tracked separately
             securityRisks: 0, // Not currently tracked separately
-            redirects: 0 // Not currently tracked
+            redirects: 0, // Not currently tracked
         );
     }
 }

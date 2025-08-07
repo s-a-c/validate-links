@@ -4,23 +4,25 @@
 declare(strict_types=1);
 
 /**
- * Mock Optimization Validation Script
- * 
+ * Mock Optimization Validation Script.
+ *
  * This script validates that the mock optimizations work correctly
  * and maintain backward compatibility with existing tests.
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Tests\Support\MockFactory;
 use Tests\Support\HttpMockFactory;
 use Tests\Support\MockDataBuilder;
+use Tests\Support\MockFactory;
 use Tests\Support\MockLifecycleManager;
 
-class MockOptimizationValidator
+final class MockOptimizationValidator
 {
     private array $results = [];
+
     private int $passed = 0;
+
     private int $failed = 0;
 
     public function run(): int
@@ -46,26 +48,26 @@ class MockOptimizationValidator
         try {
             // Test security validation service creation
             $securityMock = MockFactory::createSecurityValidationService();
-            $this->assert($securityMock instanceof \Mockery\MockInterface, 'Security mock creation');
+            $this->assert($securityMock instanceof Mockery\MockInterface, 'Security mock creation');
 
             // Test link validation service creation
             $linkMock = MockFactory::createLinkValidationService();
-            $this->assert($linkMock instanceof \Mockery\MockInterface, 'Link validation mock creation');
+            $this->assert($linkMock instanceof Mockery\MockInterface, 'Link validation mock creation');
 
             // Test reporting service creation
             $reportingMock = MockFactory::createReportingService();
-            $this->assert($reportingMock instanceof \Mockery\MockInterface, 'Reporting mock creation');
+            $this->assert($reportingMock instanceof Mockery\MockInterface, 'Reporting mock creation');
 
             // Test custom configuration
             $customSecurityMock = MockFactory::createSecurityValidationService([
                 'safe_urls' => ['https://example.com'],
                 'malicious_urls' => ['https://malicious.com'],
             ]);
-            $this->assert($customSecurityMock instanceof \Mockery\MockInterface, 'Custom security mock creation');
+            $this->assert($customSecurityMock instanceof Mockery\MockInterface, 'Custom security mock creation');
 
             echo "  ✅ MockFactory validation passed\n";
         } catch (Exception $e) {
-            echo "  ❌ MockFactory validation failed: " . $e->getMessage() . "\n";
+            echo '  ❌ MockFactory validation failed: ' . $e->getMessage() . "\n";
             $this->failed++;
         }
     }
@@ -77,32 +79,32 @@ class MockOptimizationValidator
         try {
             // Test basic mock client creation
             $client = HttpMockFactory::createMockClient(['success_200', 'not_found_404']);
-            $this->assert($client instanceof \GuzzleHttp\Client, 'Basic HTTP mock client creation');
+            $this->assert($client instanceof GuzzleHttp\Client, 'Basic HTTP mock client creation');
 
             // Test pre-configured clients
             $successClient = HttpMockFactory::createSuccessfulValidationClient();
-            $this->assert($successClient instanceof \GuzzleHttp\Client, 'Successful validation client');
+            $this->assert($successClient instanceof GuzzleHttp\Client, 'Successful validation client');
 
             $mixedClient = HttpMockFactory::createMixedValidationClient();
-            $this->assert($mixedClient instanceof \GuzzleHttp\Client, 'Mixed validation client');
+            $this->assert($mixedClient instanceof GuzzleHttp\Client, 'Mixed validation client');
 
             $redirectClient = HttpMockFactory::createRedirectClient();
-            $this->assert($redirectClient instanceof \GuzzleHttp\Client, 'Redirect client');
+            $this->assert($redirectClient instanceof GuzzleHttp\Client, 'Redirect client');
 
             $timeoutClient = HttpMockFactory::createTimeoutClient();
-            $this->assert($timeoutClient instanceof \GuzzleHttp\Client, 'Timeout client');
+            $this->assert($timeoutClient instanceof GuzzleHttp\Client, 'Timeout client');
 
             // Test available responses
             $responses = HttpMockFactory::getAvailableResponses();
-            $this->assert(is_array($responses) && !empty($responses), 'Available responses list');
+            $this->assert(is_array($responses) && ! empty($responses), 'Available responses list');
 
             // Test custom response creation
             $customResponse = HttpMockFactory::createCustomResponse(201, ['Content-Type' => 'application/json'], '{"created": true}');
-            $this->assert($customResponse instanceof \GuzzleHttp\Psr7\Response, 'Custom response creation');
+            $this->assert($customResponse instanceof GuzzleHttp\Psr7\Response, 'Custom response creation');
 
             echo "  ✅ HttpMockFactory validation passed\n";
         } catch (Exception $e) {
-            echo "  ❌ HttpMockFactory validation failed: " . $e->getMessage() . "\n";
+            echo '  ❌ HttpMockFactory validation failed: ' . $e->getMessage() . "\n";
             $this->failed++;
         }
     }
@@ -114,28 +116,28 @@ class MockOptimizationValidator
         try {
             // Test validation config creation
             $config = MockDataBuilder::createValidationConfig(['timeout' => 30]);
-            $this->assert($config instanceof \App\Services\ValueObjects\ValidationConfig, 'Validation config creation');
+            $this->assert($config instanceof App\Services\ValueObjects\ValidationConfig, 'Validation config creation');
 
             // Test validation result creation
             $result = MockDataBuilder::createValidationResult(['url' => 'https://example.com']);
-            $this->assert($result instanceof \App\Services\ValueObjects\ValidationResult, 'Validation result creation');
+            $this->assert($result instanceof App\Services\ValueObjects\ValidationResult, 'Validation result creation');
 
             // Test validation result collection creation
             $collection = MockDataBuilder::createValidationResultCollection(['count' => 10]);
-            $this->assert($collection instanceof \App\Services\ValueObjects\ValidationResultCollection, 'Validation result collection creation');
+            $this->assert($collection instanceof App\Services\ValueObjects\ValidationResultCollection, 'Validation result collection creation');
             $this->assert($collection->count() === 10, 'Collection count matches');
 
             // Test report summary creation
             $summary = MockDataBuilder::createReportSummary(['total_links' => 100]);
-            $this->assert($summary instanceof \App\Services\ValueObjects\ReportSummary, 'Report summary creation');
+            $this->assert($summary instanceof App\Services\ValueObjects\ReportSummary, 'Report summary creation');
 
             // Test validation statistics creation
             $statistics = MockDataBuilder::createValidationStatistics(['total' => 100]);
-            $this->assert($statistics instanceof \App\Services\ValueObjects\ValidationStatistics, 'Validation statistics creation');
+            $this->assert($statistics instanceof App\Services\ValueObjects\ValidationStatistics, 'Validation statistics creation');
 
             echo "  ✅ MockDataBuilder validation passed\n";
         } catch (Exception $e) {
-            echo "  ❌ MockDataBuilder validation failed: " . $e->getMessage() . "\n";
+            echo '  ❌ MockDataBuilder validation failed: ' . $e->getMessage() . "\n";
             $this->failed++;
         }
     }
@@ -146,7 +148,7 @@ class MockOptimizationValidator
 
         try {
             // Test mock registration
-            $mock = \Mockery::mock(\App\Services\Contracts\SecurityValidationInterface::class);
+            $mock = Mockery::mock(App\Services\Contracts\SecurityValidationInterface::class);
             $registeredMock = MockLifecycleManager::registerMock('test_mock', $mock);
             $this->assert($registeredMock === $mock, 'Mock registration');
 
@@ -163,11 +165,11 @@ class MockOptimizationValidator
 
             // Test cleanup
             MockLifecycleManager::cleanup();
-            $this->assert(!MockLifecycleManager::hasMock('test_mock'), 'Mock cleanup');
+            $this->assert(! MockLifecycleManager::hasMock('test_mock'), 'Mock cleanup');
 
             echo "  ✅ MockLifecycleManager validation passed\n";
         } catch (Exception $e) {
-            echo "  ❌ MockLifecycleManager validation failed: " . $e->getMessage() . "\n";
+            echo '  ❌ MockLifecycleManager validation failed: ' . $e->getMessage() . "\n";
             $this->failed++;
         }
     }
@@ -179,7 +181,7 @@ class MockOptimizationValidator
         try {
             // Note: Helper functions are defined in Pest.php and may not be available in this context
             // This is a basic validation that the functions exist
-            
+
             $helperFunctions = [
                 'createSecurityValidationMock',
                 'createLinkValidationMock',
@@ -194,7 +196,7 @@ class MockOptimizationValidator
 
             $missingFunctions = [];
             foreach ($helperFunctions as $function) {
-                if (!function_exists($function)) {
+                if (! function_exists($function)) {
                     $missingFunctions[] = $function;
                 }
             }
@@ -203,11 +205,10 @@ class MockOptimizationValidator
                 echo "  ✅ All helper functions are defined\n";
             } else {
                 echo "  ⚠️ Helper functions are defined in Pest.php context (expected)\n";
-                echo "    Missing in CLI context: " . implode(', ', $missingFunctions) . "\n";
+                echo '    Missing in CLI context: ' . implode(', ', $missingFunctions) . "\n";
             }
-
         } catch (Exception $e) {
-            echo "  ❌ Helper function validation failed: " . $e->getMessage() . "\n";
+            echo '  ❌ Helper function validation failed: ' . $e->getMessage() . "\n";
             $this->failed++;
         }
     }
@@ -218,30 +219,30 @@ class MockOptimizationValidator
 
         try {
             // Test that old patterns still work alongside new ones
-            
+
             // Test Mockery still works
-            $oldStyleMock = \Mockery::mock(\App\Services\Contracts\SecurityValidationInterface::class);
+            $oldStyleMock = Mockery::mock(App\Services\Contracts\SecurityValidationInterface::class);
             $oldStyleMock->shouldReceive('validateUrl')->andReturn(true);
-            $this->assert($oldStyleMock instanceof \Mockery\MockInterface, 'Old-style Mockery still works');
+            $this->assert($oldStyleMock instanceof Mockery\MockInterface, 'Old-style Mockery still works');
 
             // Test that ValidationConfig can still be created manually
-            $manualConfig = new \App\Services\ValueObjects\ValidationConfig(
-                scopes: [\App\Enums\ValidationScope::ALL]
+            $manualConfig = new App\Services\ValueObjects\ValidationConfig(
+                scopes: [App\Enums\ValidationScope::ALL],
             );
-            $this->assert($manualConfig instanceof \App\Services\ValueObjects\ValidationConfig, 'Manual config creation still works');
+            $this->assert($manualConfig instanceof App\Services\ValueObjects\ValidationConfig, 'Manual config creation still works');
 
             // Test that ValidationResult can still be created manually
-            $manualResult = \App\Services\ValueObjects\ValidationResult::create(
+            $manualResult = App\Services\ValueObjects\ValidationResult::create(
                 url: 'https://example.com',
-                status: \App\Enums\LinkStatus::VALID,
+                status: App\Enums\LinkStatus::VALID,
                 message: '',
-                scope: \App\Enums\ValidationScope::EXTERNAL
+                scope: App\Enums\ValidationScope::EXTERNAL,
             );
-            $this->assert($manualResult instanceof \App\Services\ValueObjects\ValidationResult, 'Manual result creation still works');
+            $this->assert($manualResult instanceof App\Services\ValueObjects\ValidationResult, 'Manual result creation still works');
 
             echo "  ✅ Backward compatibility validation passed\n";
         } catch (Exception $e) {
-            echo "  ❌ Backward compatibility validation failed: " . $e->getMessage() . "\n";
+            echo '  ❌ Backward compatibility validation failed: ' . $e->getMessage() . "\n";
             $this->failed++;
         }
     }
@@ -260,18 +261,18 @@ class MockOptimizationValidator
 
     private function printSummary(): void
     {
-        echo "\n" . str_repeat("=", 60) . "\n";
+        echo "\n" . str_repeat('=', 60) . "\n";
         echo "📊 VALIDATION SUMMARY\n";
-        echo str_repeat("=", 60) . "\n";
-        
+        echo str_repeat('=', 60) . "\n";
+
         echo "✅ Passed: {$this->passed}\n";
         echo "❌ Failed: {$this->failed}\n";
-        echo "📈 Total:  " . ($this->passed + $this->failed) . "\n\n";
+        echo '📈 Total:  ' . ($this->passed + $this->failed) . "\n\n";
 
         if ($this->failed === 0) {
             echo "🎉 All mock optimizations are working correctly!\n";
             echo "🚀 The test suite is ready for enhanced mock patterns.\n\n";
-            
+
             echo "Next steps:\n";
             echo "1. Run the test suite: ./vendor/bin/pest\n";
             echo "2. Check specific test groups: ./vendor/bin/pest --group=integration\n";
@@ -280,7 +281,7 @@ class MockOptimizationValidator
             echo "⚠️ Some validations failed. Please review the errors above.\n";
             echo "🔧 Check the implementation and try again.\n";
         }
-        
+
         echo "\n";
     }
 }

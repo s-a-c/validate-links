@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Services\Contracts\SecurityValidationInterface;
+use App\Services\ValueObjects\SecurityConfiguration;
 use InvalidArgumentException;
 use Throwable;
 
@@ -183,14 +184,14 @@ final readonly class SecurityValidationService implements SecurityValidationInte
     /**
      * Get security configuration.
      */
-    public function getSecurityConfig(): array
+    public function getSecurityConfig(): SecurityConfiguration
     {
-        return [
+        return SecurityConfiguration::fromArray([
             'blocked_domains' => $this->blockedDomains,
             'allowed_protocols' => $this->allowedProtocols,
             'max_file_size' => $this->maxFileSize,
             'blocked_paths' => $this->blockedPaths,
-        ];
+        ]);
     }
 
     /**

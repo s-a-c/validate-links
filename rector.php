@@ -6,25 +6,19 @@ use Rector\Config\RectorConfig;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
-use RectorLaravel\Set\LaravelSetList;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
 use Rector\TypeDeclaration\Rector\Property\TypedPropertyFromStrictConstructorRector;
-use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateMethodRector;
-use Rector\DeadCode\Rector\Property\RemoveUnusedPrivatePropertyRector;
-use Rector\CodingStyle\Rector\ClassMethod\MakeInheritedMethodVisibilitySameAsParentRector;
-use Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector;
-use Rector\Privatization\Rector\Method\PrivatizeLocalOnlyMethodRector;
-use Rector\Privatization\Rector\Property\PrivatizeLocalPropertyToPrivatePropertyRector;
+use RectorLaravel\Set\LaravelSetList;
 
 return static function (RectorConfig $rectorConfig): void {
     // Configure paths to analyze - only include existing directories
     $paths = [];
     $potentialPaths = [
-        __DIR__.'/app',
-        __DIR__.'/bootstrap',
-        __DIR__.'/config',
-        __DIR__.'/database',
-        __DIR__.'/tests',
+        __DIR__ . '/app',
+        __DIR__ . '/bootstrap',
+        __DIR__ . '/config',
+        __DIR__ . '/database',
+        __DIR__ . '/tests',
     ];
 
     foreach ($potentialPaths as $path) {
@@ -42,14 +36,14 @@ return static function (RectorConfig $rectorConfig): void {
     // Skip directories and files - comprehensive exclusions
     $skipPaths = [];
     $potentialSkipPaths = [
-        __DIR__.'/bootstrap/cache',
-        __DIR__.'/storage/logs',
-        __DIR__.'/storage/framework',
-        __DIR__.'/storage/app',
-        __DIR__.'/vendor',
-        __DIR__.'/node_modules',
-        __DIR__.'/database/migrations', // Preserve migration structure
-        __DIR__.'/tests/Fixtures', // Preserve test fixtures
+        __DIR__ . '/bootstrap/cache',
+        __DIR__ . '/storage/logs',
+        __DIR__ . '/storage/framework',
+        __DIR__ . '/storage/app',
+        __DIR__ . '/vendor',
+        __DIR__ . '/node_modules',
+        __DIR__ . '/database/migrations', // Preserve migration structure
+        __DIR__ . '/tests/Fixtures', // Preserve test fixtures
     ];
 
     foreach ($potentialSkipPaths as $path) {
@@ -60,7 +54,7 @@ return static function (RectorConfig $rectorConfig): void {
 
     // Skip specific rules that may cause issues with Laravel Zero
     $skipPaths[] = AddOverrideAttributeToOverriddenMethodsRector::class;
-    
+
     // Skip files with specific patterns
     $skipPaths[] = '*/tests/Fixtures/*';
     $skipPaths[] = '*/storage/rector/*';
@@ -105,19 +99,19 @@ return static function (RectorConfig $rectorConfig): void {
     //     maxNumberOfProcess: 8,
     //     jobSize: 20
     // );
-    
-    $rectorConfig->cacheDirectory(__DIR__.'/storage/rector');
+
+    $rectorConfig->cacheDirectory(__DIR__ . '/storage/rector');
     $rectorConfig->memoryLimit('2G'); // Increased for PHP 8.4+ processing
-    
+
     // Enhanced file processing
     $rectorConfig->fileExtensions(['php']);
     $rectorConfig->indent(' ', 4); // Laravel standard indentation
-    
+
     // Import names configuration for cleaner code
     $rectorConfig->importNames();
     $rectorConfig->importShortClasses();
     $rectorConfig->removeUnusedImports();
-    
+
     // Laravel Zero specific configurations
-    $rectorConfig->phpstanConfig(__DIR__.'/phpstan.neon');
+    $rectorConfig->phpstanConfig(__DIR__ . '/phpstan.neon');
 };

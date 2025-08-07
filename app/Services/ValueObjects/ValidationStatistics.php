@@ -30,7 +30,7 @@ final readonly class ValidationStatistics
         private int $timeouts,
         private int $securityRisks,
         private int $redirects = 0,
-        private float $successRate = 0.0
+        private float $successRate = 0.0,
     ) {
         $this->validateStatistics();
     }
@@ -46,6 +46,7 @@ final readonly class ValidationStatistics
      * @param int $timeouts Number of links that timed out
      * @param int $securityRisks Number of links with security risks
      * @param int $redirects Number of redirected links (considered successful)
+     *
      * @return self New ValidationStatistics instance
      */
     public static function fromCounts(
@@ -54,7 +55,7 @@ final readonly class ValidationStatistics
         int $broken,
         int $timeouts,
         int $securityRisks,
-        int $redirects = 0
+        int $redirects = 0,
     ): self {
         $successRate = $total > 0 ? ($valid + $redirects) / $total * 100 : 0.0;
 
@@ -65,7 +66,7 @@ final readonly class ValidationStatistics
             timeouts: $timeouts,
             securityRisks: $securityRisks,
             redirects: $redirects,
-            successRate: $successRate
+            successRate: $successRate,
         );
     }
 

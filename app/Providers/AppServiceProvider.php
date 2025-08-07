@@ -7,7 +7,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Application Service Provider
+ * Application Service Provider.
  *
  * This provider handles the registration and bootstrapping of core application services.
  * It extends Laravel's ServiceProvider to integrate with the Laravel Zero framework.

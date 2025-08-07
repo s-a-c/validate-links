@@ -1,9 +1,10 @@
 #!/usr/bin/env php
 <?php
+
 declare(strict_types=1);
 
 /**
- * scripts/policy-check.php
+ * scripts/policy-check.php.
  *
  * Dependency-free policy validator for project guidelines.
  * PHP 8.1+
@@ -62,12 +63,14 @@ final class Fs
         if ($data === false) {
             throw new RuntimeException("Unable to read file: {$path}");
         }
+
         return $data;
     }
 
     public static function tryRead(string $path): ?string
     {
         $data = @file_get_contents($path);
+
         return $data === false ? null : $data;
     }
 
@@ -82,6 +85,7 @@ final class Fs
         if ($t === false) {
             return 0;
         }
+
         return (int) $t;
     }
 
@@ -92,33 +96,35 @@ final class Fs
     public static function rlist(string $base, ?callable $filter = null): array
     {
         $result = [];
-        if (!is_dir($base)) {
+        if (! is_dir($base)) {
             return $result;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS),
         );
         $root = getcwd() ?: '.';
         foreach ($it as $file) {
-            if (!$file->isFile()) {
+            if (! $file->isFile()) {
                 continue;
             }
             $path = self::relpath($file->getPathname(), $root);
-            if ($filter && !$filter($path)) {
+            if ($filter && ! $filter($path)) {
                 continue;
             }
             $result[] = $path;
         }
+
         return $result;
     }
 
     public static function relpath(string $path, string $root): string
     {
-        $root = rtrim(str_replace('\\', '/', $root), '/') . '/';
+        $root = mb_rtrim(str_replace('\\', '/', $root), '/') . '/';
         $path = str_replace('\\', '/', $path);
         if (str_starts_with($path, $root)) {
-            return substr($path, strlen($root));
+            return mb_substr($path, mb_strlen($root));
         }
+
         return $path;
     }
 }
@@ -128,7 +134,7 @@ final class JsonStore
     /** Simple JSON store to track previous checksum for drift detection. */
     public static function load(string $path): array
     {
-        if (!Fs::exists($path)) {
+        if (! Fs::exists($path)) {
             return [];
         }
         $raw = Fs::tryRead($path);
@@ -136,13 +142,14 @@ final class JsonStore
             return [];
         }
         $data = json_decode($raw, true);
+
         return is_array($data) ? $data : [];
     }
 
     public static function save(string $path, array $data): void
     {
         $dir = dirname($path);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             @mkdir($dir, 0777, true);
         }
         file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
@@ -157,6 +164,7 @@ final class JsonStore
 final class GuidelineLoaderInline
 {
     private string $masterPath = '.ai/guidelines.md';
+
     private string $modulesDir = '.ai/guidelines';
 
     /** @var list<string> */
@@ -166,6 +174,7 @@ final class GuidelineLoaderInline
     private array $rules = [];
 
     private string $checksum = '';
+
     /** @var array{ master:int, modules:int } */
     private array $lastModified = ['master' => 0, 'modules' => 0];
 
@@ -210,13 +219,13 @@ final class GuidelineLoaderInline
             while ($i < $n) {
                 $line = $lines[$i];
                 if (preg_match('/^(#{2,6})\s+(.*)$/', $line, $m)) {
-                    $title = trim($m[2]);
+                    $title = mb_trim($m[2]);
                     $start = $i + 1;
                     $end = $this->scanUntilNextHeading($lines, $i + 1);
                     $block = implode("\n", array_slice($lines, $start, $end - $start));
                     $id = $this->extractId($block) ?? $this->makeId($title, $f, $start);
                     $scope = $this->extractKV($block, 'scope') ?? 'general';
-                    $priority = (int)($this->extractKV($block, 'priority') ?? 0);
+                    $priority = (int) ($this->extractKV($block, 'priority') ?? 0);
                     $this->rules[$id] = [
                         'id' => $id,
                         'title' => $title,
@@ -228,11 +237,35 @@ final class GuidelineLoaderInline
                         'text' => $block,
                     ];
                     $i = $end;
+
                     continue;
                 }
                 $i++;
             }
         }
+    }
+
+    /** @return array<string, array{ id:string, title:string, scope:string, priority:int, file:string, start:int, end:int, text:string }> */
+    public function getRules(): array
+    {
+        return $this->rules;
+    }
+
+    public function getChecksum(): string
+    {
+        return $this->checksum;
+    }
+
+    /** @return array{ master:int, modules:int } */
+    public function getLastModified(): array
+    {
+        return $this->lastModified;
+    }
+
+    /** @return list<string> */
+    public function getPaths(): array
+    {
+        return $this->paths;
     }
 
     private function scanUntilNextHeading(array $lines, int $from): int
@@ -243,39 +276,35 @@ final class GuidelineLoaderInline
                 return $i;
             }
         }
+
         return $n;
     }
 
     private function extractId(string $block): ?string
     {
         if (preg_match('/\bid\s*:\s*([A-Za-z0-9\-\._]+)/', $block, $m)) {
-            return trim($m[1]);
+            return mb_trim($m[1]);
         }
+
         return null;
     }
 
     private function extractKV(string $block, string $key): ?string
     {
         if (preg_match('/\b' . preg_quote($key, '/') . '\s*:\s*([^\r\n]+)/i', $block, $m)) {
-            return trim($m[1]);
+            return mb_trim($m[1]);
         }
+
         return null;
     }
 
     private function makeId(string $title, string $file, int $start): string
     {
-        $base = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $title) ?? '');
-        $base = trim($base, '-');
+        $base = mb_strtolower(preg_replace('/[^a-z0-9]+/i', '-', $title) ?? '');
+        $base = mb_trim($base, '-');
+
         return ($base !== '' ? $base : 'rule') . '-' . md5($file . ':' . $start);
     }
-
-    /** @return array<string, array{ id:string, title:string, scope:string, priority:int, file:string, start:int, end:int, text:string }> */
-    public function getRules(): array { return $this->rules; }
-    public function getChecksum(): string { return $this->checksum; }
-    /** @return array{ master:int, modules:int } */
-    public function getLastModified(): array { return $this->lastModified; }
-    /** @return list<string> */
-    public function getPaths(): array { return $this->paths; }
 }
 
 // ---------------------------------------------------------
@@ -287,10 +316,13 @@ final class PolicyCheck
     private const REQUIRED_HEADER_PREFIX = 'Compliant with [.ai/guidelines.md](.ai/guidelines.md) v';
 
     private bool $strict;
+
     /** @var list<string> */
     private array $scanPaths;
+
     /** @var list<string> */
     private array $violations = [];
+
     /** @var list<string> */
     private array $warnings = [];
 
@@ -310,15 +342,15 @@ final class PolicyCheck
         $lm = $this->loader->getLastModified();
 
         Cli::o('Policy: loading guidelines...');
-        Cli::o('- master: ' . $lm['master'] . ' (' . date(DATE_ATOM, (int)$lm['master']) . ')');
-        Cli::o('- modules: ' . $lm['modules'] . ' (' . date(DATE_ATOM, (int)$lm['modules']) . ')');
+        Cli::o('- master: ' . $lm['master'] . ' (' . date(DATE_ATOM, (int) $lm['master']) . ')');
+        Cli::o('- modules: ' . $lm['modules'] . ' (' . date(DATE_ATOM, (int) $lm['modules']) . ')');
         Cli::o('- checksum: ' . $checksum);
         Cli::o('- files: ' . implode(', ', $this->loader->getPaths()));
 
         // Drift detection (record prior checksum)
         $statePath = '.ai/.policy-state.json';
         $state = JsonStore::load($statePath);
-        $prevChecksum = (string)($state['lastChecksum'] ?? '');
+        $prevChecksum = (string) ($state['lastChecksum'] ?? '');
 
         if ($this->strict && $prevChecksum !== '' && $prevChecksum !== $checksum) {
             $this->violations[] = 'Drift detected: guidelines checksum changed without re-acknowledgement. '
@@ -370,6 +402,7 @@ final class PolicyCheck
      * excluding vendor/node_modules/storage/build artifacts.
      *
      * @param list<string> $paths
+     *
      * @return list<string>
      */
     private function discoverFiles(array $paths): array
@@ -384,11 +417,12 @@ final class PolicyCheck
                 }
             }
             sort($out, SORT_STRING);
+
             return $out;
         }
 
         $dirs = ['.', 'app', 'config', 'docs', 'tests', 'scripts', '.github'];
-        $allowExt = ['php','md','yml','yaml','json','ts','tsx'];
+        $allowExt = ['php', 'md', 'yml', 'yaml', 'json', 'ts', 'tsx'];
         $deny = '#^(vendor|node_modules|storage|public|dist|build|coverage|reports/rector/cache)/#';
 
         $files = [];
@@ -397,13 +431,14 @@ final class PolicyCheck
                 if (preg_match($deny, $f)) {
                     continue;
                 }
-                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                $ext = mb_strtolower(pathinfo($f, PATHINFO_EXTENSION));
                 if (in_array($ext, $allowExt, true)) {
                     $files[] = $f;
                 }
             }
         }
         sort($files, SORT_STRING);
+
         return $files;
     }
 
@@ -422,14 +457,14 @@ final class PolicyCheck
         $required = self::REQUIRED_HEADER_PREFIX . $checksum;
 
         foreach ($files as $f) {
-            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+            $ext = mb_strtolower(pathinfo($f, PATHINFO_EXTENSION));
             $isCandidate =
                 $ext === 'md' ||
                 $ext === 'php' ||
                 str_starts_with($f, '.github/workflows/') ||
                 str_starts_with($f, 'scripts/');
 
-            if (!$isCandidate) {
+            if (! $isCandidate) {
                 continue;
             }
             $content = Fs::tryRead($f) ?? '';
@@ -437,7 +472,7 @@ final class PolicyCheck
                 continue;
             }
 
-            if (!str_contains($content, $required)) {
+            if (! str_contains($content, $required)) {
                 // Allow root guidelines themselves not to require self-ack
                 if ($f === '.ai/guidelines.md' || str_starts_with($f, '.ai/guidelines/')) {
                     continue;
@@ -498,7 +533,7 @@ final class PolicyCheck
             if (str_starts_with($f, 'tests/Support/Fixtures/') && preg_match('/\.secrets?\./i', $f)) {
                 $this->violations[] =
                     "Path policy violation: disallowed file {$this->link($f, 1)} " .
-                    "(rule [.ai/guidelines/path-policy.md](.ai/guidelines/path-policy.md:10))";
+                    '(rule [.ai/guidelines/path-policy.md](.ai/guidelines/path-policy.md:10))';
             }
         }
     }
@@ -510,21 +545,21 @@ final class PolicyCheck
      */
     private function optionalCommitMessageValidation(): void
     {
-        if (!is_dir('.git')) {
+        if (! is_dir('.git')) {
             return;
         }
         $head = @shell_exec('git log -1 --pretty=%B 2>/dev/null');
         if ($head === null) {
             return;
         }
-        $head = trim($head);
+        $head = mb_trim($head);
         if ($head === '') {
             return;
         }
         // Tolerant check: if strict, require presence of "guidelines v<hex>" mention
-        if ($this->strict && !preg_match('/guidelines\s+v[0-9a-f]{40,64}/i', $head)) {
-            $this->warnings[] = "Commit message does not mention current guidelines checksum "
-                . "(rule [.ai/orchestration-policy.md](.ai/orchestration-policy.md:36))";
+        if ($this->strict && ! preg_match('/guidelines\s+v[0-9a-f]{40,64}/i', $head)) {
+            $this->warnings[] = 'Commit message does not mention current guidelines checksum '
+                . '(rule [.ai/orchestration-policy.md](.ai/orchestration-policy.md:36))';
         }
     }
 
@@ -537,17 +572,17 @@ final class PolicyCheck
      * Attempts to find a rule reference by scope or id, for better citations.
      * Returns [file, line].
      *
-     * @param string $key
      * @return array{0:string,1:int}|null
      */
     private function findRuleRef(string $key): ?array
     {
         $rules = $this->loader->getRules();
         foreach ($rules as $r) {
-            if (str_contains(strtolower($r['scope']), strtolower($key)) || strtolower($r['id']) === strtolower($key)) {
+            if (str_contains(mb_strtolower($r['scope']), mb_strtolower($key)) || mb_strtolower($r['id']) === mb_strtolower($key)) {
                 return [$r['file'], max(1, $r['start'])];
             }
         }
+
         return null;
     }
 }
@@ -557,15 +592,15 @@ final class PolicyCheck
 // ---------------------------------------------------------
 
 /**
- * Parse args
+ * Parse args.
  */
 $strict = in_array('--strict', $argv, true);
-$pathsArg = array_values(array_filter($argv, fn($a) => str_starts_with((string)$a, '--paths=')));
+$pathsArg = array_values(array_filter($argv, fn ($a) => str_starts_with((string) $a, '--paths=')));
 $paths = [];
 if ($pathsArg !== []) {
-    $csv = substr((string)$pathsArg[0], strlen('--paths='));
+    $csv = mb_substr((string) $pathsArg[0], mb_strlen('--paths='));
     foreach (explode(',', $csv) as $g) {
-        $g = trim($g);
+        $g = mb_trim($g);
         if ($g !== '') {
             $paths[] = $g;
         }

@@ -30,13 +30,13 @@ final readonly class LinkExtractionResult
         public int $lineNumber,
         public ValidationScope $scope,
         public ?string $anchor = null,
-        public ?string $filePath = null
+        public ?string $filePath = null,
     ) {
         $this->validate();
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public static function create(array $data): self
     {
@@ -67,7 +67,7 @@ final readonly class LinkExtractionResult
             lineNumber: $lineNumber,
             scope: $scope,
             anchor: isset($data['anchor']) ? (is_string($data['anchor']) ? $data['anchor'] : (is_scalar($data['anchor']) ? (string) $data['anchor'] : null)) : null,
-            filePath: isset($data['file_path']) ? (is_string($data['file_path']) ? $data['file_path'] : (is_scalar($data['file_path']) ? (string) $data['file_path'] : null)) : null
+            filePath: isset($data['file_path']) ? (is_string($data['file_path']) ? $data['file_path'] : (is_scalar($data['file_path']) ? (string) $data['file_path'] : null)) : null,
         );
     }
 
@@ -123,7 +123,7 @@ final readonly class LinkExtractionResult
      */
     private function validate(): void
     {
-        if (empty($this->url)) {
+        if ($this->url === '' || $this->url === '0') {
             throw new InvalidArgumentException('URL cannot be empty');
         }
 

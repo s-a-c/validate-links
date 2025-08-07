@@ -15,7 +15,7 @@ use IteratorAggregate;
 final readonly class ValidationResultCollection implements Countable, IteratorAggregate
 {
     /**
-     * @param  array<ValidationResult>  $results
+     * @param array<ValidationResult> $results
      */
     public function __construct(
         private array $results = [],
@@ -33,7 +33,7 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
     /**
      * Create a new ValidationResultCollection with the given results.
      *
-     * @param  array<ValidationResult>  $results
+     * @param array<ValidationResult> $results
      */
     public static function create(array $results = []): self
     {
@@ -49,12 +49,12 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
     }
 
     /**
-     * @param  array<mixed>  $results
+     * @param array<mixed> $results
      */
     public static function fromArray(array $results): self
     {
         return new self(array_map(
-            function ($result) {
+            function ($result): ValidationResult {
                 if ($result instanceof ValidationResult) {
                     return $result;
                 }
@@ -63,7 +63,7 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
 
                 return ValidationResult::fromArray($data);
             },
-            $results
+            $results,
         ));
     }
 
@@ -71,7 +71,7 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
     {
         return new self(array_values(array_filter(
             $this->results,
-            fn (ValidationResult $result) => $result->isSuccessful()
+            fn (ValidationResult $validationResult): bool => $validationResult->isSuccessful(),
         )));
     }
 
@@ -79,13 +79,13 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
     {
         return new self(array_values(array_filter(
             $this->results,
-            fn (ValidationResult $result) => ! $result->isSuccessful()
+            fn (ValidationResult $validationResult): bool => ! $validationResult->isSuccessful(),
         )));
     }
 
     public function isEmpty(): bool
     {
-        return empty($this->results);
+        return $this->results === [];
     }
 
     public function first(): ?ValidationResult
@@ -99,7 +99,7 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
     }
 
     /**
-     * Add method to convert to array of ValidationResult objects
+     * Add method to convert to array of ValidationResult objects.
      *
      * @return array<ValidationResult>
      */
@@ -117,7 +117,7 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
     }
 
     /**
-     * Returns the number of validation results in the collection
+     * Returns the number of validation results in the collection.
      */
     public function count(): int
     {
@@ -129,6 +129,6 @@ final readonly class ValidationResultCollection implements Countable, IteratorAg
      */
     public function toArray(): array
     {
-        return array_values(array_map(fn ($result) => $result->toArray(), $this->results));
+        return array_values(array_map(fn ($result): array => $result->toArray(), $this->results));
     }
 }

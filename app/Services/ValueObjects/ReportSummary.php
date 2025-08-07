@@ -30,13 +30,13 @@ final readonly class ReportSummary
         public float $successRate,
         public array $statusBreakdown,
         public float $executionTime,
-        public int $filesProcessed
+        public int $filesProcessed,
     ) {
         $this->validate();
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public static function create(array $data): self
     {
@@ -69,7 +69,7 @@ final readonly class ReportSummary
             successRate: $successRate,
             statusBreakdown: $statusBreakdown,
             executionTime: $executionTime,
-            filesProcessed: $filesProcessed
+            filesProcessed: $filesProcessed,
         );
     }
 

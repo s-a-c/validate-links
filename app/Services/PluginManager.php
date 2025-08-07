@@ -19,16 +19,16 @@ final readonly class PluginManager
         $this->plugins = new Collection();
     }
 
-    public function register(ExtensionInterface $plugin): void
+    public function register(ExtensionInterface $extension): void
     {
-        $this->plugins->put($plugin->getName(), $plugin);
-        $plugin->register();
+        $this->plugins->put($extension->getName(), $extension);
+        $extension->register();
     }
 
     public function boot(): void
     {
-        $this->plugins->each(function (ExtensionInterface $plugin): void {
-            $plugin->boot();
+        $this->plugins->each(function (ExtensionInterface $extension): void {
+            $extension->boot();
         });
     }
 

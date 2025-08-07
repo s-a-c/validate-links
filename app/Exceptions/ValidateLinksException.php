@@ -20,19 +20,19 @@ abstract class ValidateLinksException extends Exception
     /**
      * Create a new exception instance.
      *
-     * @param  string  $message  The exception message
-     * @param  int  $code  The exception code
-     * @param  Throwable|null  $previous  The previous throwable used for exception chaining
-     * @param  array<string, mixed>  $context  Additional context data
+     * @param string $message The exception message
+     * @param int $code The exception code
+     * @param Throwable|null $throwable The previous throwable used for exception chaining
+     * @param array<string, mixed> $context Additional context data
      */
-    public function __construct(string $message = '', int $code = 0, ?Throwable $previous = null, /**
+    public function __construct(string $message = '', int $code = 0, ?Throwable $throwable = null, /**
      * Additional context data for the exception.
      *
      * @var array<string, mixed>
      */
         protected array $context = [])
     {
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, $code, $throwable);
     }
 
     /**
@@ -55,7 +55,7 @@ abstract class ValidateLinksException extends Exception
     /**
      * Unserialize the exception.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     final public function __unserialize(array $data): void
     {
@@ -91,7 +91,7 @@ abstract class ValidateLinksException extends Exception
 
         $result = "{$className} [{$errorCode}]: {$message} in {$file}:{$line}";
 
-        return $result.("\nStack trace:\n".$this->getTraceAsString());
+        return $result . ("\nStack trace:\n" . $this->getTraceAsString());
     }
 
     /**

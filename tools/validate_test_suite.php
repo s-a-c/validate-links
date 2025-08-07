@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Test Suite Validation Tool
+ * Test Suite Validation Tool.
  *
  * Validates the entire test suite for syntax errors and generates comprehensive reports.
  * Saves results in organized reports/validation/ directory.
@@ -40,7 +40,7 @@ final class TestSuiteValidator
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator('tests/', RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator('tests/', RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -59,7 +59,7 @@ final class TestSuiteValidator
     {
         echo "Validating: {$filePath}";
 
-        $syntaxCheck = shell_exec('php -l '.escapeshellarg($filePath).' 2>&1');
+        $syntaxCheck = shell_exec('php -l ' . escapeshellarg($filePath) . ' 2>&1');
         $isValid = mb_strpos($syntaxCheck, 'No syntax errors') !== false;
 
         if ($isValid) {
@@ -76,7 +76,7 @@ final class TestSuiteValidator
                 'status' => 'error',
                 'message' => mb_trim($syntaxCheck),
             ];
-            echo '  Error: '.mb_trim($syntaxCheck)."\n";
+            echo '  Error: ' . mb_trim($syntaxCheck) . "\n";
         }
     }
 
@@ -153,7 +153,7 @@ final class TestSuiteValidator
         $report .= "|--------|-------|------------|\n";
         $report .= "| Total Files | {$this->totalFiles} | 100% |\n";
         $report .= "| Valid Files | {$this->validFiles} | {$successRate}% |\n";
-        $report .= "| Error Files | {$this->errorFiles} | ".round(($this->errorFiles / $this->totalFiles) * 100, 1)."% |\n";
+        $report .= "| Error Files | {$this->errorFiles} | " . round(($this->errorFiles / $this->totalFiles) * 100, 1) . "% |\n";
 
         // Save reports
         $timestampedFile = "reports/validation/validation_{$dateStamp}.md";
@@ -188,7 +188,7 @@ final class TestSuiteValidator
 }
 
 // Main execution
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     $validator = new TestSuiteValidator();
     $validator->validateTestSuite();
 }

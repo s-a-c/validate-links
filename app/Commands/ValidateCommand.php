@@ -26,7 +26,7 @@ use function Laravel\Prompts\progress;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
-class ValidateCommand extends BaseValidationCommand
+final class ValidateCommand extends BaseValidationCommand
 {
     // These properties are initialized in the parent constructor
     // Remove public declarations as they're already handled by parent
@@ -58,7 +58,7 @@ class ValidateCommand extends BaseValidationCommand
 
     public function __construct(
         LinkValidationInterface $linkValidation,
-        ReportingInterface $reporting
+        ReportingInterface $reporting,
     ) {
         parent::__construct($linkValidation, $reporting);
     }
@@ -84,7 +84,7 @@ class ValidateCommand extends BaseValidationCommand
     /**
      * Display validation summary.
      *
-     * @param  \App\Services\ValueObjects\ReportSummary  $summary
+     * @param \App\Services\ValueObjects\ReportSummary $summary
      */
     protected function displaySummary($summary): void
     {
@@ -179,7 +179,7 @@ class ValidateCommand extends BaseValidationCommand
                 required   : true,
                 validate   : fn (string $value): ?string => is_dir($value) || is_file($value)
                     ? null
-                    : 'Path must exist'
+                    : 'Path must exist',
             );
 
             $paths[] = $path;
@@ -214,13 +214,13 @@ class ValidateCommand extends BaseValidationCommand
             options : $this->getScopeOptions(),
             default : [ValidationScope::INTERNAL->value, ValidationScope::ANCHOR->value],
             required: true,
-            hint    : 'Use space to select, enter to confirm'
+            hint    : 'Use space to select, enter to confirm',
         );
 
         // Convert selected values to enum instances
         return array_map(
             fn ($value) => ValidationScope::from($value),
-            $selectedValues
+            $selectedValues,
         );
     }
 
@@ -270,7 +270,7 @@ class ValidateCommand extends BaseValidationCommand
             label  : 'Choose output format',
             options: $formatOptions,
             default: OutputFormat::CONSOLE->value,
-            hint   : 'Each format has different capabilities and use cases'
+            hint   : 'Each format has different capabilities and use cases',
         );
 
         $format = OutputFormat::from($selectedFormat);
@@ -286,7 +286,7 @@ class ValidateCommand extends BaseValidationCommand
                     placeholder: "./reports/{$defaultFilename}",
                     default    : "./reports/{$defaultFilename}",
                     required   : true,
-                    validate   : fn (string $value): ?string => $this->validateOutputPath($value, $format)
+                    validate   : fn (string $value): ?string => $this->validateOutputPath($value, $format),
                 );
             }
         }
@@ -339,7 +339,7 @@ class ValidateCommand extends BaseValidationCommand
                 default    : '10',
                 validate   : fn (string $value): ?string => is_numeric($value) && (int) $value > 0 && (int) $value <= 50
                     ? null
-                    : 'Must be a number between 1 and 50'
+                    : 'Must be a number between 1 and 50',
             );
         }
 
@@ -349,7 +349,7 @@ class ValidateCommand extends BaseValidationCommand
             default    : '30',
             validate   : fn (string $value): ?string => is_numeric($value) && (int) $value > 0 && (int) $value <= 300
                 ? null
-                : 'Must be a number between 1 and 300'
+                : 'Must be a number between 1 and 300',
         );
 
         $options['follow_redirects'] = confirm('Follow redirects?', true);
@@ -361,7 +361,7 @@ class ValidateCommand extends BaseValidationCommand
                 default    : '5',
                 validate   : fn (string $value): ?string => is_numeric($value) && (int) $value >= 0 && (int) $value <= 20
                     ? null
-                    : 'Must be a number between 0 and 20'
+                    : 'Must be a number between 0 and 20',
             );
         }
 
@@ -373,17 +373,17 @@ class ValidateCommand extends BaseValidationCommand
     /**
      * Confirm configuration before execution.
      *
-     * @param  array<string>  $paths
-     * @param  array<string>  $scope
-     * @param  array<string, mixed>  $outputConfig
-     * @param  array<string, mixed>  $options
+     * @param array<string> $paths
+     * @param array<string> $scope
+     * @param array<string, mixed> $outputConfig
+     * @param array<string, mixed> $options
      */
     private function confirmConfiguration(array $paths, array $scope, array $outputConfig, array $options): bool
     {
         $this->newLine();
         $this->info('📋 Configuration Summary:');
-        $this->line('Paths: '.implode(', ', $paths));
-        $this->line('Scope: '.implode(', ', $scope));
+        $this->line('Paths: ' . implode(', ', $paths));
+        $this->line('Scope: ' . implode(', ', $scope));
         $format = is_string($outputConfig['format'] ?? null) ? $outputConfig['format'] : 'console';
         $this->line("Format: {$format}");
         if (isset($outputConfig['file']) && $outputConfig['file']) {
@@ -393,7 +393,7 @@ class ValidateCommand extends BaseValidationCommand
         $concurrent = isset($options['concurrent']) && $options['concurrent'];
         $maxConcurrent = is_string($options['max_concurrent'] ?? null) ? $options['max_concurrent'] : '10';
         $timeout = is_string($options['timeout'] ?? null) ? $options['timeout'] : '30';
-        $this->line('Concurrent: '.($concurrent ? "Yes ({$maxConcurrent})" : 'No'));
+        $this->line('Concurrent: ' . ($concurrent ? "Yes ({$maxConcurrent})" : 'No'));
         $this->line("Timeout: {$timeout}s");
         $this->newLine();
 
@@ -403,9 +403,9 @@ class ValidateCommand extends BaseValidationCommand
     /**
      * Execute interactive validation with progress feedback.
      *
-     * @param  array<string>  $paths
-     * @param  array<string>  $scope
-     * @param  array<string, mixed>  $outputConfig
+     * @param array<string> $paths
+     * @param array<string> $scope
+     * @param array<string, mixed> $outputConfig
      */
     private function executeInteractiveValidation(array $paths, array $scope, array $outputConfig): int
     {
@@ -413,7 +413,7 @@ class ValidateCommand extends BaseValidationCommand
 
         $progress = progress(
             label: 'Validating links',
-            steps: $totalFiles
+            steps: $totalFiles,
         );
 
         $allResults = [];
@@ -423,7 +423,7 @@ class ValidateCommand extends BaseValidationCommand
             $files = $this->getFilesFromPath($path);
 
             foreach ($files as $file) {
-                $progress->label('Validating: '.basename((string) $file));
+                $progress->label('Validating: ' . basename((string) $file));
 
                 // Create ValidationConfig from scope array
                 $scopeEnums = array_map(fn ($s) => ValidationScope::from($s), $scope);
@@ -443,7 +443,7 @@ class ValidateCommand extends BaseValidationCommand
 
                 // Show real-time broken link alerts
                 if ($this->hasBrokenLinks($fileResults->toValidationResultArray())) {
-                    $this->warn("⚠️  Broken links found in: {(string) $file}");
+                    $this->warn("⚠️  Broken links found in: {(string) {$file}}");
                 }
             }
         }
@@ -478,7 +478,7 @@ class ValidateCommand extends BaseValidationCommand
     /**
      * Count total files to be processed.
      *
-     * @param  string[]  $paths
+     * @param string[] $paths
      */
     private function countFiles(array $paths): int
     {
@@ -516,7 +516,7 @@ class ValidateCommand extends BaseValidationCommand
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -533,7 +533,7 @@ class ValidateCommand extends BaseValidationCommand
     /**
      * Check if file results contain broken links.
      *
-     * @param  ValidationResult[]  $fileResults
+     * @param ValidationResult[] $fileResults
      */
     private function hasBrokenLinks(array $fileResults): bool
     {
@@ -576,7 +576,7 @@ class ValidateCommand extends BaseValidationCommand
         OutputFormat $format,
         ?string $outputFile,
         int $concurrent,
-        int $timeout
+        int $timeout,
     ): int {
         // Display validation info for all paths
         $pathsDisplay = implode(', ', $paths);
@@ -602,7 +602,7 @@ class ValidateCommand extends BaseValidationCommand
             $allResults = [];
             foreach ($paths as $path) {
                 $files = $this->getFilesFromPath($path);
-                
+
                 foreach ($files as $file) {
                     $fileResults = $this->linkValidation->validateFile($file, $config);
                     $allResults = array_merge($allResults, $fileResults->toValidationResultArray());
@@ -645,7 +645,6 @@ class ValidateCommand extends BaseValidationCommand
             $this->info("   Success rate: {$summary->successRate}%");
 
             return $summary->brokenLinks > 0 ? 1 : 0;
-
         } catch (Exception $e) {
             $this->error("❌ Validation failed: {$e->getMessage()}");
 

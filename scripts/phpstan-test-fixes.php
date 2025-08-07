@@ -3,13 +3,12 @@
 declare(strict_types=1);
 
 /**
- * PHPStan Level 10 Test Compliance Automation Script
+ * PHPStan Level 10 Test Compliance Automation Script.
  *
  * This script automates the bulk fixes needed for PHPStan Level 10 compliance
  * in Pest test files by handling common patterns like $this-> property access.
  */
-
-class PHPStanTestFixer
+final class PHPStanTestFixer
 {
     private array $stats = [
         'files_processed' => 0,
@@ -20,7 +19,7 @@ class PHPStanTestFixer
     ];
 
     public function __construct(
-        private string $testsDirectory = 'tests'
+        private string $testsDirectory = 'tests',
     ) {}
 
     public function fixAllTestFiles(): void
@@ -42,7 +41,7 @@ class PHPStanTestFixer
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->testsDirectory)
+            new RecursiveDirectoryIterator($this->testsDirectory),
         );
 
         foreach ($iterator as $file) {
@@ -59,6 +58,7 @@ class PHPStanTestFixer
         $content = file_get_contents($filePath);
         if ($content === false) {
             echo "❌ Could not read file: {$filePath}\n";
+
             return;
         }
 
@@ -95,10 +95,10 @@ class PHPStanTestFixer
         ];
 
         foreach ($patterns as $pattern => $replacement) {
-            $oldCount = substr_count($content, trim($pattern, '/'));
+            $oldCount = mb_substr_count($content, mb_trim($pattern, '/'));
             $content = preg_replace($pattern, $replacement, $content);
-            $newCount = substr_count($content, $replacement);
-            $this->stats['this_references_fixed'] += ($oldCount - substr_count($content, trim($pattern, '/')));
+            $newCount = mb_substr_count($content, $replacement);
+            $this->stats['this_references_fixed'] += ($oldCount - mb_substr_count($content, mb_trim($pattern, '/')));
         }
 
         // Pattern 2: Add use clauses to test functions that need them
@@ -126,9 +126,9 @@ class PHPStanTestFixer
         ];
 
         foreach ($patterns as $pattern => $replacement) {
-            $oldCount = substr_count($content, trim($pattern, '/'));
+            $oldCount = mb_substr_count($content, mb_trim($pattern, '/'));
             $content = preg_replace($pattern, $replacement, $content);
-            $this->stats['helper_calls_fixed'] += $oldCount - substr_count($content, $replacement);
+            $this->stats['helper_calls_fixed'] += $oldCount - mb_substr_count($content, $replacement);
         }
 
         return $content;
@@ -159,16 +159,15 @@ class PHPStanTestFixer
     private function addMissingImports(string $content): string
     {
         // Check if Mockery import is needed
-        if (strpos($content, 'Mockery::mock') !== false &&
-            strpos($content, 'use Mockery;') === false) {
-
+        if (mb_strpos($content, 'Mockery::mock') !== false &&
+            mb_strpos($content, 'use Mockery;') === false) {
             // Find the last use statement and add Mockery after it
             $pattern = '/(use [^;]+;)(\s*\n)/';
             preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
 
-            if (!empty($matches[0])) {
+            if (! empty($matches[0])) {
                 $lastMatch = end($matches[0]);
-                $insertPos = $lastMatch[1] + strlen($lastMatch[0]);
+                $insertPos = $lastMatch[1] + mb_strlen($lastMatch[0]);
                 $content = substr_replace($content, "use Mockery;\n", $insertPos, 0);
             }
         }
@@ -178,21 +177,21 @@ class PHPStanTestFixer
 
     private function printSummary(): void
     {
-        echo "\n" . str_repeat("=", 60) . "\n";
+        echo "\n" . str_repeat('=', 60) . "\n";
         echo "📊 PHPStan Test Fixes Summary\n";
-        echo str_repeat("=", 60) . "\n";
+        echo str_repeat('=', 60) . "\n";
         echo "Files processed: {$this->stats['files_processed']}\n";
         echo "\$this-> references fixed: {$this->stats['this_references_fixed']}\n";
         echo "Use clauses added: {$this->stats['use_clauses_added']}\n";
         echo "Helper calls fixed: {$this->stats['helper_calls_fixed']}\n";
         echo "JSON operations fixed: {$this->stats['json_operations_fixed']}\n";
-        echo str_repeat("=", 60) . "\n";
+        echo str_repeat('=', 60) . "\n";
         echo "✅ Automation complete! Run PHPStan to check remaining issues.\n";
     }
 }
 
 // Run the fixer
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     $fixer = new PHPStanTestFixer();
     $fixer->fixAllTestFiles();
 }

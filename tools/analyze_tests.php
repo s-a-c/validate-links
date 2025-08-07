@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Comprehensive Test File Analysis Script
+ * Comprehensive Test File Analysis Script.
  *
  * This script analyzes all test files in the tests/ directory to identify:
  * 1. Syntax errors
@@ -37,11 +37,11 @@ function analyzeTestFile(string $filePath): array
     $analysis['line_count'] = count($lines);
 
     // Check syntax
-    $syntaxCheck = shell_exec('php -l '.escapeshellarg($filePath).' 2>&1');
+    $syntaxCheck = shell_exec('php -l ' . escapeshellarg($filePath) . ' 2>&1');
     $analysis['syntax_valid'] = mb_strpos($syntaxCheck, 'No syntax errors') !== false;
 
     if (! $analysis['syntax_valid']) {
-        $analysis['issues'][] = 'Syntax error: '.mb_trim($syntaxCheck);
+        $analysis['issues'][] = 'Syntax error: ' . mb_trim($syntaxCheck);
     }
 
     // Analyze content patterns
@@ -70,20 +70,20 @@ function analyzeTestFile(string $filePath): array
 
             if (! $isTestSupport) {
                 $analysis['has_embedded_classes'] = true;
-                $analysis['issues'][] = "Embedded class/interface/trait found at line $lineNum: ".mb_trim($line);
+                $analysis['issues'][] = "Embedded class/interface/trait found at line {$lineNum}: " . mb_trim($line);
             }
         }
 
         // Check for malformed Pest syntax
         if (preg_match('/expect\([^)]+\)->\w+\(\)/', $line)) {
-            $analysis['issues'][] = "Potential malformed Pest syntax at line $lineNum: ".mb_trim($line);
+            $analysis['issues'][] = "Potential malformed Pest syntax at line {$lineNum}: " . mb_trim($line);
         }
 
         // Check for missing use statements (basic check)
         if (preg_match('/new\s+([A-Z]\w+)/', $line, $matches)) {
             $className = $matches[1];
-            if (! preg_match("/use.*\\\\$className;/", $content) &&
-                ! preg_match("/use.*$className;/", $content) &&
+            if (! preg_match("/use.*\\\\{$className};/", $content) &&
+                ! preg_match("/use.*{$className};/", $content) &&
                 ! in_array($className, ['Exception', 'ReflectionClass', 'DateTime', 'stdClass'])) {
                 $analysis['missing_imports'][] = $className;
             }
@@ -97,7 +97,7 @@ function analyzeTestFile(string $filePath): array
         $expectedNamespace = str_replace('tests\\', 'Tests\\', $expectedNamespace);
 
         if (mb_strpos($expectedNamespace, $namespace) === false) {
-            $analysis['namespace_issues'][] = "Namespace '$namespace' doesn't match expected path-based namespace";
+            $analysis['namespace_issues'][] = "Namespace '{$namespace}' doesn't match expected path-based namespace";
         }
     }
 
@@ -113,7 +113,7 @@ function findTestFiles(string $directory): array
 {
     $files = [];
     $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
+        new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
     );
 
     foreach ($iterator as $file) {
@@ -131,7 +131,7 @@ function findTestFiles(string $directory): array
 function generateReport(array $analyses): string
 {
     $report = "# Test File Analysis Report\n";
-    $report .= 'Generated: '.date('Y-m-d H:i:s')."\n\n";
+    $report .= 'Generated: ' . date('Y-m-d H:i:s') . "\n\n";
 
     $totalFiles = count($analyses);
     $syntaxErrors = array_filter($analyses, fn ($a) => ! $a['syntax_valid']);
@@ -139,10 +139,10 @@ function generateReport(array $analyses): string
     $embeddedClasses = array_filter($analyses, fn ($a) => $a['has_embedded_classes']);
 
     $report .= "## Summary\n";
-    $report .= "- Total files analyzed: $totalFiles\n";
-    $report .= '- Files with syntax errors: '.count($syntaxErrors)."\n";
-    $report .= '- Files with mixed PHPUnit/Pest syntax: '.count($mixedSyntax)."\n";
-    $report .= '- Files with embedded classes: '.count($embeddedClasses)."\n\n";
+    $report .= "- Total files analyzed: {$totalFiles}\n";
+    $report .= '- Files with syntax errors: ' . count($syntaxErrors) . "\n";
+    $report .= '- Files with mixed PHPUnit/Pest syntax: ' . count($mixedSyntax) . "\n";
+    $report .= '- Files with embedded classes: ' . count($embeddedClasses) . "\n\n";
 
     $report .= "## Priority Issues\n\n";
 
@@ -152,7 +152,7 @@ function generateReport(array $analyses): string
             $report .= "- **{$analysis['file']}**\n";
             foreach ($analysis['issues'] as $issue) {
                 if (mb_strpos($issue, 'Syntax error') === 0) {
-                    $report .= "  - $issue\n";
+                    $report .= "  - {$issue}\n";
                 }
             }
             $report .= "\n";
@@ -173,7 +173,7 @@ function generateReport(array $analyses): string
             $report .= "- **{$analysis['file']}**\n";
             foreach ($analysis['issues'] as $issue) {
                 if (mb_strpos($issue, 'Embedded') === 0) {
-                    $report .= "  - $issue\n";
+                    $report .= "  - {$issue}\n";
                 }
             }
             $report .= "\n";
@@ -187,10 +187,10 @@ function generateReport(array $analyses): string
 $testFiles = findTestFiles('tests/');
 $analyses = [];
 
-echo 'Analyzing '.count($testFiles)." test files...\n";
+echo 'Analyzing ' . count($testFiles) . " test files...\n";
 
 foreach ($testFiles as $file) {
-    echo "Analyzing: $file\n";
+    echo "Analyzing: {$file}\n";
     $analyses[] = analyzeTestFile($file);
 }
 
@@ -213,7 +213,7 @@ echo "\nAnalysis complete. Reports saved:\n";
 echo "  - Timestamped: {$timestampedFile}\n";
 echo "  - Latest: {$latestFile}\n";
 echo "\nSummary:\n";
-echo '- Total files: '.count($analyses)."\n";
-echo '- Syntax errors: '.count(array_filter($analyses, fn ($a) => ! $a['syntax_valid']))."\n";
-echo '- Mixed syntax: '.count(array_filter($analyses, fn ($a) => $a['has_phpunit_syntax'] && $a['has_pest_syntax']))."\n";
-echo '- Embedded classes: '.count(array_filter($analyses, fn ($a) => $a['has_embedded_classes']))."\n";
+echo '- Total files: ' . count($analyses) . "\n";
+echo '- Syntax errors: ' . count(array_filter($analyses, fn ($a) => ! $a['syntax_valid'])) . "\n";
+echo '- Mixed syntax: ' . count(array_filter($analyses, fn ($a) => $a['has_phpunit_syntax'] && $a['has_pest_syntax'])) . "\n";
+echo '- Embedded classes: ' . count(array_filter($analyses, fn ($a) => $a['has_embedded_classes'])) . "\n";

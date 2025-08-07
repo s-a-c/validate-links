@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Trait Consolidation Script
+ * Trait Consolidation Script.
  *
  * Consolidates all test helper traits from scattered locations into
  * a unified tests/Support/Traits/ structure following Laravel/Pest best practices.
@@ -98,7 +98,6 @@ final class TraitConsolidator
 
             echo "  ✅ Moved: {$sourcePath} → {$targetPath}\n";
             $this->movedFiles[] = ['from' => $sourcePath, 'to' => $targetPath];
-
         } catch (Exception $e) {
             echo "  ❌ Failed to move {$sourcePath}: {$e->getMessage()}\n";
             $this->errors[] = "Failed to move {$sourcePath}: {$e->getMessage()}";
@@ -142,7 +141,7 @@ final class TraitConsolidator
     private function updateImportsInDirectory(string $directory): void
     {
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -245,23 +244,23 @@ final class TraitConsolidator
         echo "\n📊 CONSOLIDATION SUMMARY\n";
         echo "========================\n\n";
 
-        echo '✅ Files Moved: '.count($this->movedFiles)."\n";
+        echo '✅ Files Moved: ' . count($this->movedFiles) . "\n";
         foreach ($this->movedFiles as $move) {
             echo "   • {$move['from']} → {$move['to']}\n";
         }
 
-        echo "\n📝 Files Updated: ".count($this->updatedFiles)."\n";
+        echo "\n📝 Files Updated: " . count($this->updatedFiles) . "\n";
         foreach ($this->updatedFiles as $file) {
             echo "   • {$file}\n";
         }
 
-        echo "\n🗑️  Files Deleted: ".count($this->deletedFiles)."\n";
+        echo "\n🗑️  Files Deleted: " . count($this->deletedFiles) . "\n";
         foreach ($this->deletedFiles as $file) {
             echo "   • {$file}\n";
         }
 
         if (! empty($this->errors)) {
-            echo "\n❌ Errors: ".count($this->errors)."\n";
+            echo "\n❌ Errors: " . count($this->errors) . "\n";
             foreach ($this->errors as $error) {
                 echo "   • {$error}\n";
             }
@@ -274,7 +273,7 @@ final class TraitConsolidator
 }
 
 // Execute consolidation
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     $consolidator = new TraitConsolidator();
     $consolidator->consolidate();
 }

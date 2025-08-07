@@ -12,28 +12,29 @@ use App\Services\ValueObjects\ValidationResult;
  * This formatter provides human-readable console output with color coding,
  * emoji icons, and structured sections for easy reading in terminal environments.
  */
-class ConsoleFormatter
+final class ConsoleFormatter
 {
     /**
      * Format validation result for console output with colors and emojis.
      *
-     * @param ValidationResult $result The validation result to format
+     * @param ValidationResult $validationResult The validation result to format
      * @param array<string, mixed> $statistics Additional statistics data
+     *
      * @return string Formatted console output with ANSI color codes
      */
-    public function format(ValidationResult $result, array $statistics): string
+    public function format(ValidationResult $validationResult, array $statistics): string
     {
         $output = [];
 
         // Header
-        $output[] = $this->formatHeader($result);
+        $output[] = $this->formatHeader($validationResult);
 
         // Summary
-        $output[] = $this->formatSummary($result->getSummary());
+        $output[] = $this->formatSummary($validationResult->getSummary());
 
         // Broken links details
-        if ($result->broken !== []) {
-            $output[] = $this->formatBrokenLinks($result->broken);
+        if ($validationResult->broken !== []) {
+            $output[] = $this->formatBrokenLinks($validationResult->broken);
         }
 
         // Statistics
@@ -45,13 +46,14 @@ class ConsoleFormatter
     /**
      * Format the header section with status indicator.
      *
-     * @param ValidationResult $result The validation result
+     * @param ValidationResult $validationResult The validation result
+     *
      * @return string Colored header with status
      */
-    private function formatHeader(ValidationResult $result): string
+    private function formatHeader(ValidationResult $validationResult): string
     {
-        $status = $result->isSuccessful() ? '✅ PASSED' : '❌ FAILED';
-        $color = $result->isSuccessful() ? 'green' : 'red';
+        $status = $validationResult->isSuccessful() ? '✅ PASSED' : '❌ FAILED';
+        $color = $validationResult->isSuccessful() ? 'green' : 'red';
 
         return "<fg={$color};options=bold>🔗 Link Validation {$status}</>";
     }
@@ -60,6 +62,7 @@ class ConsoleFormatter
      * Format the validation summary section.
      *
      * @param array<string, mixed> $summary Summary data from validation result
+     *
      * @return string Formatted summary with emoji icons
      */
     private function formatSummary(array $summary): string
@@ -91,6 +94,7 @@ class ConsoleFormatter
      * Format the broken links details section.
      *
      * @param array<array{url: string, file: string, reason: string}> $broken Array of broken link data
+     *
      * @return string Formatted broken links section
      */
     private function formatBrokenLinks(array $broken): string
@@ -101,9 +105,9 @@ class ConsoleFormatter
             if (! is_array($link)) {
                 continue;
             }
-            $url = isset($link['url']) && is_scalar($link['url']) ? (string) $link['url'] : '';
-            $file = isset($link['file']) && is_scalar($link['file']) ? (string) $link['file'] : '';
-            $reason = isset($link['reason']) && is_scalar($link['reason']) ? (string) $link['reason'] : '';
+            $url = isset($link['url']) && is_scalar($link['url']) ? $link['url'] : '';
+            $file = isset($link['file']) && is_scalar($link['file']) ? $link['file'] : '';
+            $reason = isset($link['reason']) && is_scalar($link['reason']) ? $link['reason'] : '';
             $lines[] = "  🔴 {$url}";
             $lines[] = "     📄 File: {$file}";
             $lines[] = "     ❗ Reason: {$reason}";
@@ -117,6 +121,7 @@ class ConsoleFormatter
      * Format the detailed statistics section.
      *
      * @param array<string, mixed> $statistics Statistics data to display
+     *
      * @return string Formatted statistics section
      */
     private function formatStatistics(array $statistics): string

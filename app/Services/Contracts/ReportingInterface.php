@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Contracts;
 
 use App\Enums\OutputFormat;
+use App\Services\ValueObjects\ReportingOptions;
 use App\Services\ValueObjects\ReportSummary;
 use App\Services\ValueObjects\ValidationResultCollection;
 
@@ -13,24 +14,22 @@ interface ReportingInterface
     /**
      * Generate report from validation results using enum format.
      */
-    public function generateReport(ValidationResultCollection $results, OutputFormat $format = OutputFormat::CONSOLE): string;
+    public function generateReport(ValidationResultCollection $validationResultCollection, OutputFormat $outputFormat = OutputFormat::CONSOLE): string;
 
     /**
      * Format validation results with specific options.
-     *
-     * @param  array<string, mixed>  $options
      */
-    public function format(ValidationResultCollection $results, OutputFormat $format, array $options = []): string;
+    public function format(ValidationResultCollection $validationResultCollection, OutputFormat $outputFormat, ?ReportingOptions $options = null): string;
 
     /**
      * Add formatter for specific output format.
      */
-    public function addFormatter(OutputFormat $format, object $formatter): void;
+    public function addFormatter(OutputFormat $outputFormat, object $formatter): void;
 
     /**
      * Export report to file with automatic format detection.
      */
-    public function exportReport(ValidationResultCollection $results, string $filePath, ?OutputFormat $format = null): bool;
+    public function exportReport(ValidationResultCollection $validationResultCollection, string $filePath, ?OutputFormat $outputFormat = null): bool;
 
     /**
      * Get available output formats.
@@ -42,17 +41,17 @@ interface ReportingInterface
     /**
      * Check if format is supported.
      */
-    public function supportsFormat(OutputFormat $format): bool;
+    public function supportsFormat(OutputFormat $outputFormat): bool;
 
     /**
      * Generate summary statistics with status breakdown.
      */
-    public function generateSummary(ValidationResultCollection $results): ReportSummary;
+    public function generateSummary(ValidationResultCollection $validationResultCollection): ReportSummary;
 
     /**
      * Get formatter instance for specific format.
      */
-    public function getFormatter(OutputFormat $format): object;
+    public function getFormatter(OutputFormat $outputFormat): object;
 
     /**
      * Save report to file.

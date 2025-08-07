@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use App\Services\ValueObjects\BrokenLinksCollection;
+use App\Services\ValueObjects\ProcessedFilesCollection;
+use App\Services\ValueObjects\ValidationStatistics;
+
 interface StatisticsInterface
 {
     /**
@@ -17,25 +21,19 @@ interface StatisticsInterface
     public function recordFileProcessed(string $filePath, int $linkCount): void;
 
     /**
-     * Get validation statistics.
-     *
-     * @return array<string, mixed>
+     * Get validation statistics as DTO.
      */
-    public function getStatistics(): array;
+    public function getStatistics(): ValidationStatistics;
 
     /**
-     * Get broken links.
-     *
-     * @return array<string, mixed>
+     * Get broken links as collection.
      */
-    public function getBrokenLinks(): array;
+    public function getBrokenLinks(): BrokenLinksCollection;
 
     /**
-     * Get processed files.
-     *
-     * @return array<string, mixed>
+     * Get processed files as collection.
      */
-    public function getProcessedFiles(): array;
+    public function getProcessedFiles(): ProcessedFilesCollection;
 
     /**
      * Reset statistics.
@@ -46,4 +44,9 @@ interface StatisticsInterface
      * Get success rate.
      */
     public function getSuccessRate(): float;
+
+    /**
+     * Get status statistics as ValidationStatistics DTO.
+     */
+    public function getStatusStatistics(): ValidationStatistics;
 }

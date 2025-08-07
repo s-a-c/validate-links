@@ -28,9 +28,6 @@ final readonly class ValidationResult implements Stringable
 
     public float $duration;
 
-    /**
-     * @param  array<string, mixed>  $metadata
-     */
     public function __construct(
         private string $url,
         private LinkStatus $status,
@@ -39,8 +36,8 @@ final readonly class ValidationResult implements Stringable
         private ?int $httpStatusCode = null,
         private ?string $redirectUrl = null,
         private float $responseTime = 0.0,
-        private array $metadata = [],
-        private ?string $filePath = null
+        private ValidationMetadata $metadata = new ValidationMetadata(),
+        private ?string $filePath = null,
     ) {
         // Initialize public properties for formatter compatibility
         $this->broken = $this->initializeBrokenLinksArray();
@@ -51,8 +48,10 @@ final readonly class ValidationResult implements Stringable
 
     /**
      * Magic getter for backward compatibility with formatter properties.
+     *
+     * @return array<mixed>|float|null
      */
-    public function __get(string $name): mixed
+    public function __get(string $name): array|float|null
     {
         return match ($name) {
             'broken' => $this->getBrokenLinksArray(),
@@ -76,16 +75,14 @@ final readonly class ValidationResult implements Stringable
 
     /**
      * Create a successful validation result.
-     *
-     * @param  array<string, mixed>  $metadata
      */
     public static function success(
         string $url,
         ValidationScope $scope,
         ?int $httpStatusCode = null,
         float $responseTime = 0.0,
-        array $metadata = [],
-        ?string $filePath = null
+        ?ValidationMetadata $metadata = null,
+        ?string $filePath = null,
     ): self {
         return new self(
             url: $url,
@@ -93,15 +90,13 @@ final readonly class ValidationResult implements Stringable
             scope: $scope,
             httpStatusCode: $httpStatusCode,
             responseTime: $responseTime,
-            metadata: $metadata,
-            filePath: $filePath
+            metadata: $metadata ?? new ValidationMetadata(),
+            filePath: $filePath,
         );
     }
 
     /**
      * Create a failed validation result.
-     *
-     * @param  array<string, mixed>  $metadata
      */
     public static function failure(
         string $url,
@@ -111,8 +106,8 @@ final readonly class ValidationResult implements Stringable
         ?int $httpStatusCode = null,
         ?string $redirectUrl = null,
         float $responseTime = 0.0,
-        array $metadata = [],
-        ?string $filePath = null
+        ?ValidationMetadata $metadata = null,
+        ?string $filePath = null,
     ): self {
         return new self(
             url: $url,
@@ -122,16 +117,16 @@ final readonly class ValidationResult implements Stringable
             httpStatusCode: $httpStatusCode,
             redirectUrl: $redirectUrl,
             responseTime: $responseTime,
-            metadata: $metadata,
-            filePath: $filePath
+            metadata: $metadata ?? new ValidationMetadata(),
+            filePath: $filePath,
         );
     }
 
     /**
      * Create an aggregate result from multiple validation results.
      *
-     * @param  ValidationResult[]  $results
-     * @param  array<string, mixed>  $summary
+     * @param ValidationResult[] $results
+     * @param array<string, mixed> $summary
      */
     public static function aggregate(array $results, array $summary = []): self
     {
@@ -146,24 +141,24 @@ final readonly class ValidationResult implements Stringable
             }
         }
 
+        $metadata = ValidationMetadata::fromArray([
+            'total_results' => $totalResults,
+            'broken_count' => $brokenCount,
+            'summary' => $summary,
+            'results' => $results,
+        ]);
+
         // Create an aggregate result representing the overall validation
         return new self(
             url: "aggregate-{$totalResults}-results",
             status: $allValid ? LinkStatus::VALID : LinkStatus::BROKEN,
             scope: ValidationScope::ALL,
-            metadata: [
-                'total_results' => $totalResults,
-                'broken_count' => $brokenCount,
-                'summary' => $summary,
-                'results' => $results,
-            ]
+            metadata: $metadata,
         );
     }
 
     /**
      * Create a validation result with basic parameters.
-     *
-     * @param  array<string, mixed>  $metadata
      */
     public static function create(
         string $url,
@@ -172,7 +167,7 @@ final readonly class ValidationResult implements Stringable
         ValidationScope $scope = ValidationScope::ALL,
         ?int $httpStatusCode = null,
         float $responseTime = 0.0,
-        array $metadata = []
+        ?ValidationMetadata $metadata = null,
     ): self {
         return new self(
             url: $url,
@@ -181,30 +176,34 @@ final readonly class ValidationResult implements Stringable
             error: $message ?: null,
             httpStatusCode: $httpStatusCode,
             responseTime: $responseTime,
-            metadata: $metadata
+            metadata: $metadata ?? new ValidationMetadata(),
         );
     }
 
     /**
      * Create a validation result from array data.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public static function fromArray(array $data): self
     {
         $url = $data['url'] ?? '';
-        $metadata = $data['metadata'] ?? [];
-        /** @var array<string, mixed> $metadata */
+        $metadataData = $data['metadata'] ?? [];
+        /** @var array<string, mixed> $metadataArray */
+        $metadataArray = is_array($metadataData) ? $metadataData : [];
+        $metadata = $metadataArray !== []
+            ? ValidationMetadata::fromArray($metadataArray)
+            : new ValidationMetadata();
 
         return new self(
             url: is_string($url) ? $url : '',
             status: isset($data['status']) ? LinkStatus::from(is_string($data['status']) || is_int($data['status']) ? $data['status'] : '') : LinkStatus::BROKEN,
             scope: isset($data['scope']) ? ValidationScope::from(is_string($data['scope']) || is_int($data['scope']) ? $data['scope'] : '') : ValidationScope::ALL,
-            error: isset($data['error']) && (is_string($data['error']) || is_null($data['error'])) ? $data['error'] : null,
-            httpStatusCode: isset($data['http_status_code']) && (is_int($data['http_status_code']) || is_null($data['http_status_code'])) ? $data['http_status_code'] : null,
-            redirectUrl: isset($data['redirect_url']) && (is_string($data['redirect_url']) || is_null($data['redirect_url'])) ? $data['redirect_url'] : null,
+            error: isset($data['error']) && is_string($data['error']) ? $data['error'] : null,
+            httpStatusCode: isset($data['http_status_code']) && is_int($data['http_status_code']) ? $data['http_status_code'] : null,
+            redirectUrl: isset($data['redirect_url']) && is_string($data['redirect_url']) ? $data['redirect_url'] : null,
             responseTime: isset($data['response_time']) && (is_float($data['response_time']) || is_int($data['response_time'])) ? (float) $data['response_time'] : 0.0,
-            metadata: is_array($metadata) ? $metadata : []
+            metadata: $metadata,
         );
     }
 
@@ -263,10 +262,7 @@ final readonly class ValidationResult implements Stringable
         return $this->responseTime;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getMetadata(): array
+    public function getMetadata(): ValidationMetadata
     {
         return $this->metadata;
     }
@@ -333,7 +329,7 @@ final readonly class ValidationResult implements Stringable
             'response_time' => $this->responseTime,
             'severity' => $this->getSeverity(),
             'recommended_action' => $this->getRecommendedAction(),
-            'metadata' => $this->metadata,
+            'metadata' => $this->metadata->toArray(),
             'file_path' => $this->filePath,
         ];
     }
@@ -366,13 +362,7 @@ final readonly class ValidationResult implements Stringable
      */
     public function getSummary(): array
     {
-        $summary = $this->metadata['summary'] ?? [];
-        if (! is_array($summary)) {
-            return [];
-        }
-
-        /** @var array<string, mixed> $summary */
-        return $summary;
+        return $this->metadata->getSummary();
     }
 
     /**
@@ -390,7 +380,7 @@ final readonly class ValidationResult implements Stringable
      */
     public function hasBrokenLinks(): bool
     {
-        return ($this->metadata['broken_count'] ?? 0) > 0;
+        return $this->metadata->getBrokenCount() > 0;
     }
 
     /**
@@ -398,9 +388,7 @@ final readonly class ValidationResult implements Stringable
      */
     public function getBrokenCount(): int
     {
-        $count = $this->metadata['broken_count'] ?? 0;
-
-        return is_int($count) ? $count : 0;
+        return $this->metadata->getBrokenCount();
     }
 
     /**
@@ -410,28 +398,7 @@ final readonly class ValidationResult implements Stringable
      */
     public function getBrokenLinksByType(): array
     {
-        $results = $this->metadata['results'] ?? [];
-        $brokenByType = [];
-
-        if (! is_array($results)) {
-            return $brokenByType;
-        }
-
-        foreach ($results as $result) {
-            if ($result instanceof self && ! $result->isValid()) {
-                $type = $result->getScope()->value;
-                if (! isset($brokenByType[$type])) {
-                    $brokenByType[$type] = [];
-                }
-                $brokenByType[$type][] = [
-                    'url' => $result->getUrl(),
-                    'file' => 'unknown', // Would need file context
-                    'reason' => $result->getError() ?? 'Validation failed',
-                ];
-            }
-        }
-
-        return $brokenByType;
+        return $this->metadata->getBrokenLinksByType();
     }
 
     /**
@@ -439,9 +406,7 @@ final readonly class ValidationResult implements Stringable
      */
     public function getTotalLinks(): int
     {
-        $total = $this->metadata['total_results'] ?? 0;
-
-        return is_int($total) ? $total : 0;
+        return $this->metadata->getTotalResults();
     }
 
     /**
@@ -462,22 +427,7 @@ final readonly class ValidationResult implements Stringable
      */
     private function initializeBrokenLinksArray(): array
     {
-        $results = $this->metadata['results'] ?? [];
-        $broken = [];
-
-        if (is_array($results)) {
-            foreach ($results as $result) {
-                if ($result instanceof self && ! $result->isValid()) {
-                    $broken[] = [
-                        'url' => $result->getUrl(),
-                        'file' => 'unknown',
-                        'reason' => $result->getError() ?? 'Validation failed',
-                    ];
-                }
-            }
-        }
-
-        return $broken;
+        return $this->metadata->getBrokenLinksArray();
     }
 
     /**
@@ -487,14 +437,7 @@ final readonly class ValidationResult implements Stringable
      */
     private function initializeFilesArray(): array
     {
-        $files = $this->metadata['files'] ?? [];
-
-        if (! is_array($files)) {
-            return [];
-        }
-
-        // Ensure all elements are strings
-        return array_filter($files, 'is_string');
+        return $this->metadata->getFilesArray();
     }
 
     /**
@@ -504,24 +447,7 @@ final readonly class ValidationResult implements Stringable
      */
     private function initializeLinksArray(): array
     {
-        $results = $this->metadata['results'] ?? [];
-        $links = [];
-
-        if (is_array($results)) {
-            foreach ($results as $result) {
-                if ($result instanceof self) {
-                    $links[] = [
-                        'url' => $result->getUrl(),
-                        'status' => $result->getStatus()->value,
-                        'scope' => $result->getScope()->value,
-                        'is_valid' => $result->isValid(),
-                        'response_time' => $result->getResponseTime(),
-                    ];
-                }
-            }
-        }
-
-        return $links;
+        return $this->metadata->getLinksArray();
     }
 
     /**
@@ -529,9 +455,7 @@ final readonly class ValidationResult implements Stringable
      */
     private function initializeDuration(): float
     {
-        $duration = $this->metadata['duration'] ?? 0.0;
-
-        return is_float($duration) || is_int($duration) ? (float) $duration : 0.0;
+        return $this->metadata->getDuration();
     }
 
     /**
@@ -541,24 +465,7 @@ final readonly class ValidationResult implements Stringable
      */
     private function getBrokenLinksArray(): array
     {
-        $results = $this->metadata['results'] ?? [];
-        $broken = [];
-
-        if (! is_array($results)) {
-            return $broken;
-        }
-
-        foreach ($results as $result) {
-            if ($result instanceof self && ! $result->isValid()) {
-                $broken[] = [
-                    'url' => $result->getUrl(),
-                    'file' => 'unknown', // Would need file context
-                    'reason' => $result->getError() ?? 'Validation failed',
-                ];
-            }
-        }
-
-        return $broken;
+        return $this->metadata->getBrokenLinksArray();
     }
 
     /**
@@ -568,14 +475,7 @@ final readonly class ValidationResult implements Stringable
      */
     private function getFilesArray(): array
     {
-        $files = $this->metadata['files'] ?? [];
-
-        if (! is_array($files)) {
-            return [];
-        }
-
-        // Ensure all elements are strings
-        return array_filter($files, 'is_string');
+        return $this->metadata->getFilesArray();
     }
 
     /**
@@ -585,26 +485,7 @@ final readonly class ValidationResult implements Stringable
      */
     private function getLinksArray(): array
     {
-        $results = $this->metadata['results'] ?? [];
-        $links = [];
-
-        if (! is_array($results)) {
-            return $links;
-        }
-
-        foreach ($results as $result) {
-            if ($result instanceof self) {
-                $links[] = [
-                    'url' => $result->getUrl(),
-                    'status' => $result->getStatus()->value,
-                    'scope' => $result->getScope()->value,
-                    'is_valid' => $result->isValid(),
-                    'response_time' => $result->getResponseTime(),
-                ];
-            }
-        }
-
-        return $links;
+        return $this->metadata->getLinksArray();
     }
 
     /**
@@ -612,8 +493,6 @@ final readonly class ValidationResult implements Stringable
      */
     private function getDuration(): float
     {
-        $duration = $this->metadata['duration'] ?? 0.0;
-
-        return is_numeric($duration) ? (float) $duration : 0.0;
+        return $this->metadata->getDuration();
     }
 }

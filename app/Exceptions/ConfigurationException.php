@@ -12,8 +12,8 @@ final class ConfigurationException extends ValidateLinksException
     /**
      * Create a configuration exception with custom context.
      *
-     * @param  string  $message  The exception message
-     * @param  array<string, mixed>  $context  Additional context data
+     * @param string $message The exception message
+     * @param array<string, mixed> $context Additional context data
      */
     public static function withContext(string $message, array $context): static
     {
@@ -23,7 +23,7 @@ final class ConfigurationException extends ValidateLinksException
     /**
      * Create a configuration exception for a missing file.
      *
-     * @param  string  $filePath  The path to the missing file
+     * @param string $filePath The path to the missing file
      */
     public static function missingFile(string $filePath): static
     {
@@ -39,9 +39,9 @@ final class ConfigurationException extends ValidateLinksException
     /**
      * Create a configuration exception for invalid file format.
      *
-     * @param  string  $filePath  The path to the file
-     * @param  string  $expectedFormat  The expected format
-     * @param  string  $actualContent  The actual content that failed parsing
+     * @param string $filePath The path to the file
+     * @param string $expectedFormat The expected format
+     * @param string $actualContent The actual content that failed parsing
      */
     public static function invalidFormat(string $filePath, string $expectedFormat, string $actualContent): static
     {
@@ -59,8 +59,8 @@ final class ConfigurationException extends ValidateLinksException
     /**
      * Create a configuration exception for a missing required key.
      *
-     * @param  string  $key  The missing required key
-     * @param  string  $filePath  The path to the configuration file
+     * @param string $key The missing required key
+     * @param string $filePath The path to the configuration file
      */
     public static function missingRequiredKey(string $key, string $filePath): static
     {
@@ -77,9 +77,9 @@ final class ConfigurationException extends ValidateLinksException
     /**
      * Create a configuration exception for an invalid value.
      *
-     * @param  string  $key  The configuration key
-     * @param  mixed  $value  The invalid value
-     * @param  string  $expectedType  The expected type
+     * @param string $key The configuration key
+     * @param mixed $value The invalid value
+     * @param string $expectedType The expected type
      */
     public static function invalidValue(string $key, mixed $value, string $expectedType): static
     {
@@ -98,7 +98,7 @@ final class ConfigurationException extends ValidateLinksException
     /**
      * Create a configuration exception for an invalid file.
      *
-     * @param  string  $filePath  The path to the invalid file
+     * @param string $filePath The path to the invalid file
      */
     public static function invalidFile(string $filePath): never
     {
@@ -114,7 +114,7 @@ final class ConfigurationException extends ValidateLinksException
     /**
      * Create a configuration exception for an invalid key.
      *
-     * @param  string  $key  The invalid key
+     * @param string $key The invalid key
      */
     public static function invalidKey(string $key): never
     {

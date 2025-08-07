@@ -3,13 +3,12 @@
 declare(strict_types=1);
 
 /**
- * Standardize Test Structure for PHPStan Level 10 Compliance
- * 
+ * Standardize Test Structure for PHPStan Level 10 Compliance.
+ *
  * This script ensures all test files follow the comprehensive setup/teardown pattern
  * that minimizes variable scoping issues and maintains consistency.
  */
-
-class TestStructureStandardizer
+final class TestStructureStandardizer
 {
     private array $stats = [
         'files_processed' => 0,
@@ -23,7 +22,7 @@ class TestStructureStandardizer
         echo "🏗️  Standardizing Test Structure for PHPStan Level 10...\n\n";
 
         $testFiles = $this->findTestFiles();
-        
+
         foreach ($testFiles as $file) {
             if ($this->shouldStandardize($file)) {
                 echo "📁 Processing: {$file}\n";
@@ -41,7 +40,7 @@ class TestStructureStandardizer
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator('tests')
+            new RecursiveDirectoryIterator('tests'),
         );
 
         foreach ($iterator as $file) {
@@ -58,14 +57,15 @@ class TestStructureStandardizer
         // Skip utility files
         $skipFiles = ['TestCase.php', 'CreatesApplication.php', 'Pest.php'];
         $fileName = basename($filePath);
-        
+
         if (in_array($fileName, $skipFiles)) {
             return false;
         }
 
         // Only process files with describe() blocks
         $content = file_get_contents($filePath);
-        return strpos($content, 'describe(') !== false;
+
+        return mb_strpos($content, 'describe(') !== false;
     }
 
     private function standardizeTestFile(string $filePath): void
@@ -73,6 +73,7 @@ class TestStructureStandardizer
         $content = file_get_contents($filePath);
         if ($content === false) {
             echo "❌ Could not read file: {$filePath}\n";
+
             return;
         }
 
@@ -81,13 +82,13 @@ class TestStructureStandardizer
 
         // Analyze current structure
         $analysis = $this->analyzeTestStructure($content);
-        
+
         if ($analysis['needs_standardization']) {
             $content = $this->applyStandardStructure($content, $analysis, $changes);
         }
 
         // Report changes
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             echo "  📝 Changes made:\n";
             foreach ($changes as $change) {
                 echo "    - {$change}\n";
@@ -124,29 +125,29 @@ class TestStructureStandardizer
         }
 
         // Check for beforeEach/afterEach
-        $analysis['has_beforeEach'] = strpos($content, 'beforeEach(') !== false;
-        $analysis['has_afterEach'] = strpos($content, 'afterEach(') !== false;
+        $analysis['has_beforeEach'] = mb_strpos($content, 'beforeEach(') !== false;
+        $analysis['has_afterEach'] = mb_strpos($content, 'afterEach(') !== false;
 
         // Check for variable declarations
         $analysis['has_variable_declarations'] = preg_match('/\/\*\*\s*@var\s+\w+\s*\*\/\s*\$\w+\s*=/', $content);
 
         // Find variables that need to be shared
-        $commonVars = ['projectDir', 'docsDir', 'reportsDir', 'tempDir', 'configFile', 
-                      'performanceDir', 'metricsFile', 'largeDocsDir', 'linkValidation', 'reporting'];
-        
+        $commonVars = ['projectDir', 'docsDir', 'reportsDir', 'tempDir', 'configFile',
+            'performanceDir', 'metricsFile', 'largeDocsDir', 'linkValidation', 'reporting'];
+
         foreach ($commonVars as $var) {
-            if (strpos($content, "\${$var}") !== false) {
+            if (mb_strpos($content, "\${$var}") !== false) {
                 $analysis['variables_used'][] = $var;
             }
         }
 
         // Determine if standardization is needed
-        $analysis['needs_standardization'] = 
-            $analysis['has_describe'] && 
-            (!$analysis['has_variable_declarations'] || 
-             !$analysis['has_beforeEach'] || 
-             !$analysis['has_afterEach'] ||
-             !empty($analysis['variables_used']));
+        $analysis['needs_standardization'] =
+            $analysis['has_describe'] &&
+            (! $analysis['has_variable_declarations'] ||
+             ! $analysis['has_beforeEach'] ||
+             ! $analysis['has_afterEach'] ||
+             ! empty($analysis['variables_used']));
 
         return $analysis;
     }
@@ -155,20 +156,20 @@ class TestStructureStandardizer
     {
         // This is a complex transformation that would need careful implementation
         // For now, we'll provide guidance on the standard pattern
-        
-        $changes[] = "Identified need for standardization";
-        $changes[] = "Variables used: " . implode(', ', $analysis['variables_used']);
-        
-        if (!$analysis['has_variable_declarations']) {
-            $changes[] = "Needs variable declarations at top of describe block";
+
+        $changes[] = 'Identified need for standardization';
+        $changes[] = 'Variables used: ' . implode(', ', $analysis['variables_used']);
+
+        if (! $analysis['has_variable_declarations']) {
+            $changes[] = 'Needs variable declarations at top of describe block';
         }
-        
-        if (!$analysis['has_beforeEach']) {
-            $changes[] = "Needs comprehensive beforeEach setup";
+
+        if (! $analysis['has_beforeEach']) {
+            $changes[] = 'Needs comprehensive beforeEach setup';
         }
-        
-        if (!$analysis['has_afterEach']) {
-            $changes[] = "Needs comprehensive afterEach teardown";
+
+        if (! $analysis['has_afterEach']) {
+            $changes[] = 'Needs comprehensive afterEach teardown';
         }
 
         // For now, return original content with analysis
@@ -178,13 +179,13 @@ class TestStructureStandardizer
 
     private function printSummary(): void
     {
-        echo str_repeat("=", 60) . "\n";
+        echo str_repeat('=', 60) . "\n";
         echo "📊 Test Structure Standardization Summary\n";
-        echo str_repeat("=", 60) . "\n";
+        echo str_repeat('=', 60) . "\n";
         echo "Files processed: {$this->stats['files_processed']}\n";
         echo "Structures standardized: {$this->stats['structures_standardized']}\n";
-        echo str_repeat("=", 60) . "\n";
-        
+        echo str_repeat('=', 60) . "\n";
+
         echo "📋 Standard Pattern for Test Files:\n\n";
         echo $this->getStandardPattern();
     }
@@ -232,10 +233,10 @@ PATTERN;
 }
 
 // CLI interface
-if (php_sapi_name() === 'cli') {
+if (PHP_SAPI === 'cli') {
     echo "Test Structure Standardizer for PHPStan Level 10\n";
     echo "===============================================\n\n";
-    
+
     $standardizer = new TestStructureStandardizer();
     $standardizer->standardizeAllTests();
 }

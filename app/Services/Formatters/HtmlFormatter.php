@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Formatters;
 
 use App\Services\ValueObjects\ValidationResult;
+use Carbon\Carbon;
 
 /**
  * HTML formatter for validation results with styled web output.
@@ -12,18 +13,19 @@ use App\Services\ValueObjects\ValidationResult;
  * This formatter generates complete HTML documents with embedded CSS
  * for web-based viewing and sharing of validation reports.
  */
-class HtmlFormatter
+final class HtmlFormatter
 {
     /**
      * Format validation result as a complete HTML document.
      *
-     * @param ValidationResult $result The validation result to format
+     * @param ValidationResult $validationResult The validation result to format
+     *
      * @return string Complete HTML document with embedded styles
      */
-    public function format(ValidationResult $result): string
+    public function format(ValidationResult $validationResult): string
     {
         $html = $this->getHtmlTemplate();
-        $content = $this->generateContent($result);
+        $content = $this->generateContent($validationResult);
 
         return str_replace('{{CONTENT}}', $content, $html);
     }
@@ -31,17 +33,18 @@ class HtmlFormatter
     /**
      * Generate the main content section of the HTML report.
      *
-     * @param ValidationResult $result The validation result to format
+     * @param ValidationResult $validationResult The validation result to format
+     *
      * @return string HTML content with validation details
      */
-    private function generateContent(ValidationResult $result): string
+    private function generateContent(ValidationResult $validationResult): string
     {
         $content = [];
 
         // Header
         $content[] = '<div class="header">';
         $content[] = '<h1>🔗 Link Validation Report</h1>';
-        $content[] = '<p class="timestamp">Generated: '.date('Y-m-d H:i:s').'</p>';
+        $content[] = '<p class="timestamp">Generated: ' . Carbon::now()->format('Y-m-d H:i:s') . '</p>';
         $content[] = '</div>';
 
         // Summary
@@ -49,7 +52,7 @@ class HtmlFormatter
         $content[] = '<h2>📊 Summary</h2>';
         $content[] = '<div class="stats-grid">';
 
-        $stats = $result->getStatisticsSummary();
+        $stats = $validationResult->getStatisticsSummary();
         foreach ($stats as $label => $value) {
             $labelStr = (string) $label;
             $valueStr = is_scalar($value) ? (string) $value : 'unknown';
@@ -63,28 +66,28 @@ class HtmlFormatter
         $content[] = '</div>';
 
         // Status
-        $statusClass = $result->isSuccessful() ? 'success' : 'error';
-        $statusIcon = $result->isSuccessful() ? '✅' : '❌';
-        $statusText = $result->isSuccessful() ? 'Success' : 'Failed';
+        $statusClass = $validationResult->isSuccessful() ? 'success' : 'error';
+        $statusIcon = $validationResult->isSuccessful() ? '✅' : '❌';
+        $statusText = $validationResult->isSuccessful() ? 'Success' : 'Failed';
 
         $content[] = "<div class=\"status {$statusClass}\">";
         $content[] = "<h2>{$statusIcon} Status: {$statusText}</h2>";
 
-        if ($result->isSuccessful()) {
+        if ($validationResult->isSuccessful()) {
             $content[] = '<p>All links validated successfully!</p>';
         } else {
-            $brokenCount = $result->getBrokenCount();
+            $brokenCount = $validationResult->getBrokenCount();
             $content[] = "<p>Found {$brokenCount} broken link(s).</p>";
         }
 
         $content[] = '</div>';
 
         // Broken links
-        if ($result->hasBrokenLinks()) {
+        if ($validationResult->hasBrokenLinks()) {
             $content[] = '<div class="broken-links">';
             $content[] = '<h2>❌ Broken Links</h2>';
 
-            $brokenByType = $result->getBrokenLinksByType();
+            $brokenByType = $validationResult->getBrokenLinksByType();
 
             foreach ($brokenByType as $type => $links) {
                 $linkCount = count($links);

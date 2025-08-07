@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Formatters;
 
 use App\Services\ValueObjects\ValidationResult;
+use Carbon\Carbon;
 
 /**
  * JSON formatter for validation results with structured data output.
@@ -12,36 +13,37 @@ use App\Services\ValueObjects\ValidationResult;
  * This formatter provides machine-readable JSON output suitable for
  * API responses, CI/CD integration, and programmatic processing.
  */
-class JsonFormatter
+final class JsonFormatter
 {
     /**
      * Format validation result as structured JSON.
      *
-     * @param ValidationResult $result The validation result to format
+     * @param ValidationResult $validationResult The validation result to format
      * @param array<string, mixed> $statistics Additional statistics data
+     *
      * @return string Pretty-printed JSON string with validation data
      */
-    public function format(ValidationResult $result, array $statistics): string
+    public function format(ValidationResult $validationResult, array $statistics): string
     {
         $data = [
             'validation' => [
-                'status' => $result->isSuccessful() ? 'passed' : 'failed',
-                'timestamp' => date('c'),
-                'summary' => $result->getSummary(),
+                'status' => $validationResult->isSuccessful() ? 'passed' : 'failed',
+                'timestamp' => Carbon::now()->format('c'),
+                'summary' => $validationResult->getSummary(),
             ],
-            'files' => $result->files,
+            'files' => $validationResult->files,
             'links' => [
-                'total' => $result->getTotalLinks(),
-                'broken' => $result->getBrokenCount(),
-                'success_rate' => $result->getSuccessRate(),
-                'details' => $result->links,
+                'total' => $validationResult->getTotalLinks(),
+                'broken' => $validationResult->getBrokenCount(),
+                'success_rate' => $validationResult->getSuccessRate(),
+                'details' => $validationResult->links,
             ],
-            'broken_links' => $result->broken,
+            'broken_links' => $validationResult->broken,
             'statistics' => $statistics,
             'performance' => [
-                'duration' => $result->duration,
-                'files_per_second' => count($result->files) / max($result->duration, 0.001),
-                'links_per_second' => $result->getTotalLinks() / max($result->duration, 0.001),
+                'duration' => $validationResult->duration,
+                'files_per_second' => count($validationResult->files) / max($validationResult->duration, 0.001),
+                'links_per_second' => $validationResult->getTotalLinks() / max($validationResult->duration, 0.001),
             ],
         ];
 

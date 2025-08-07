@@ -7,7 +7,7 @@ namespace App\Commands;
 use App\Enums\OutputFormat;
 use App\Services\ValueObjects\ValidationConfig;
 
-class ReportCommand extends BaseValidationCommand
+final class ReportCommand extends BaseValidationCommand
 {
     protected $signature = 'report
         {paths* : Paths to analyze}
@@ -48,6 +48,7 @@ class ReportCommand extends BaseValidationCommand
                 $this->info("Report saved to: {$outputPath}");
             } else {
                 $this->error("Failed to save report to: {$outputPath}");
+
                 return self::FAILURE;
             }
         } else {

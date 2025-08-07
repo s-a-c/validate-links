@@ -9,9 +9,11 @@ use App\Enums\OutputFormat;
 use App\Enums\ValidationScope;
 use App\Services\Contracts\LinkValidationInterface;
 use App\Services\Contracts\ReportingInterface;
+use App\Services\ValueObjects\ReportingOptions;
 use App\Services\ValueObjects\ValidationConfig;
 use App\Services\ValueObjects\ValidationResult;
 use App\Services\ValueObjects\ValidationResultCollection;
+use InvalidArgumentException;
 use LaravelZero\Framework\Commands\Command;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -25,7 +27,7 @@ abstract class BaseValidationCommand extends Command
      */
     public function __construct(
         protected LinkValidationInterface $linkValidation,
-        protected ReportingInterface $reporting
+        protected ReportingInterface $reporting,
     ) {
         parent::__construct();
     }
@@ -79,7 +81,7 @@ abstract class BaseValidationCommand extends Command
 
         return array_map(
             fn ($s) => ValidationScope::from($s),
-            $scopeValues
+            $scopeValues,
         );
     }
 
@@ -112,9 +114,9 @@ abstract class BaseValidationCommand extends Command
             $scopeOption = $this->getOptionWithDefault('scope', null);
             if ($scopeOption !== null && is_string($scopeOption) && $scopeOption !== 'all' && ! $this->isValidScopeList($scopeOption)) {
                 $this->error("Invalid scope: {$scopeOption}");
-                $this->info('Valid scopes: '.implode(', ', ValidationScope::values()));
+                $this->info('Valid scopes: ' . implode(', ', ValidationScope::values()));
                 $this->info('Use "all" for comprehensive validation');
-                throw new \InvalidArgumentException("Invalid scope: {$scopeOption}");
+                throw new InvalidArgumentException("Invalid scope: {$scopeOption}");
             }
         }
 
@@ -123,8 +125,8 @@ abstract class BaseValidationCommand extends Command
             $formatOption = $this->getOptionWithDefault('format', null);
             if ($formatOption !== null && is_string($formatOption) && ! OutputFormat::isValid($formatOption)) {
                 $this->error("Invalid format: {$formatOption}");
-                $this->info('Valid formats: '.implode(', ', OutputFormat::values()));
-                throw new \InvalidArgumentException("Invalid format: {$formatOption}");
+                $this->info('Valid formats: ' . implode(', ', OutputFormat::values()));
+                throw new InvalidArgumentException("Invalid format: {$formatOption}");
             }
         }
     }
@@ -169,10 +171,14 @@ abstract class BaseValidationCommand extends Command
         }
 
         // For other formats or file output, use reporting service
-        $output = $this->reporting->format($results, $format, [
-            'colors' => $format === OutputFormat::CONSOLE,
-            'verbose' => $this->output->isVerbose(),
-        ]);
+        $reportingOptions = new ReportingOptions(
+            includeTimestamps: false,
+            includeMetadata: true,
+            showProgress: true,
+            includeStatistics: true,
+            showSuccessful: false,
+        );
+        $output = $this->reporting->format($results, $format, $reportingOptions);
 
         if ($outputPath) {
             $outputPathString = is_string($outputPath) ? $outputPath : '';
@@ -191,7 +197,8 @@ abstract class BaseValidationCommand extends Command
     /**
      * Collect files from paths based on configuration.
      *
-     * @param  string[]  $paths
+     * @param string[] $paths
+     *
      * @return string[]
      */
     protected function collectFiles(array $paths, ValidationConfig $config): array
@@ -212,7 +219,7 @@ abstract class BaseValidationCommand extends Command
     /**
      * Execute validation on the provided files and return a collection.
      *
-     * @param  string[]  $files
+     * @param string[] $files
      */
     protected function executeValidation(array $files, ValidationConfig $config): ValidationResultCollection
     {
@@ -259,7 +266,7 @@ abstract class BaseValidationCommand extends Command
     /**
      * Display status groups with enum-based formatting.
      *
-     * @param  array<string, ValidationResult[]>  $statusGroups
+     * @param array<string, ValidationResult[]> $statusGroups
      */
     protected function displayStatusGroups(array $statusGroups): void
     {
@@ -272,7 +279,7 @@ abstract class BaseValidationCommand extends Command
     /**
      * Display validation summary using ReportSummary object.
      *
-     * @param  \App\Services\ValueObjects\ReportSummary|array<string, mixed>  $summary
+     * @param \App\Services\ValueObjects\ReportSummary|array<string, mixed> $summary
      */
     protected function displaySummary($summary): void
     {
@@ -294,7 +301,7 @@ abstract class BaseValidationCommand extends Command
     /**
      * Legacy method for displaying validation summary with statistics.
      *
-     * @param  array<string, mixed>  $summary
+     * @param array<string, mixed> $summary
      */
     protected function displayValidationSummary(array $summary): void
     {
@@ -315,7 +322,7 @@ abstract class BaseValidationCommand extends Command
     /**
      * Display a specific status group.
      *
-     * @param  ValidationResult[]  $results
+     * @param ValidationResult[] $results
      */
     private function displayStatusGroup(LinkStatus $status, array $results): void
     {
@@ -342,7 +349,7 @@ abstract class BaseValidationCommand extends Command
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         /** @var SplFileInfo $file */

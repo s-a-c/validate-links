@@ -11,8 +11,8 @@ use InvalidArgumentException;
 final readonly class ValidationConfig
 {
     /**
-     * @param  ValidationScope[]  $scopes
-     * @param  array<string, mixed>  $additionalOptions
+     * @param ValidationScope[] $scopes
+     * @param array<string, mixed> $additionalOptions
      */
     public function __construct(
         private array $scopes = [ValidationScope::ALL],
@@ -25,7 +25,7 @@ final readonly class ValidationConfig
         private ?OutputFormat $outputFormat = null,
         private array $additionalOptions = [],
         private bool $interactive = false,
-        private bool $dryRun = false
+        private bool $dryRun = false,
     ) {
         $this->validate();
     }
@@ -33,7 +33,7 @@ final readonly class ValidationConfig
     /**
      * Create configuration from array.
      *
-     * @param  array<string, mixed>  $config
+     * @param array<string, mixed> $config
      */
     public static function create(array $config): self
     {
@@ -94,14 +94,14 @@ final readonly class ValidationConfig
             outputFormat: $outputFormat,
             additionalOptions: $additionalOptions,
             interactive: (bool) ($config['interactive'] ?? false),
-            dryRun: (bool) ($config['dry_run'] ?? false)
+            dryRun: (bool) ($config['dry_run'] ?? false),
         );
     }
 
     /**
      * Create configuration with defaults.
      *
-     * @param  array<string, mixed>  $overrides
+     * @param array<string, mixed> $overrides
      */
     public static function withDefaults(array $overrides = []): self
     {
@@ -121,9 +121,9 @@ final readonly class ValidationConfig
     /**
      * Check if specific scope is enabled.
      */
-    public function hasScope(ValidationScope $scope): bool
+    public function hasScope(ValidationScope $validationScope): bool
     {
-        return in_array($scope, $this->scopes, true) ||
+        return in_array($validationScope, $this->scopes, true) ||
                in_array(ValidationScope::ALL, $this->scopes, true);
     }
 
@@ -207,7 +207,7 @@ final readonly class ValidationConfig
     /**
      * Create new instance with modified scopes.
      *
-     * @param  ValidationScope[]  $scopes
+     * @param ValidationScope[] $scopes
      */
     public function withScopes(array $scopes): self
     {
@@ -220,14 +220,14 @@ final readonly class ValidationConfig
             followRedirects: $this->followRedirects,
             userAgent: $this->userAgent,
             outputFormat: $this->outputFormat,
-            additionalOptions: $this->additionalOptions
+            additionalOptions: $this->additionalOptions,
         );
     }
 
     /**
      * Create new instance with modified output format.
      */
-    public function withOutputFormat(OutputFormat $format): self
+    public function withOutputFormat(OutputFormat $outputFormat): self
     {
         return new self(
             scopes: $this->scopes,
@@ -237,8 +237,8 @@ final readonly class ValidationConfig
             cacheEnabled: $this->cacheEnabled,
             followRedirects: $this->followRedirects,
             userAgent: $this->userAgent,
-            outputFormat: $format,
-            additionalOptions: $this->additionalOptions
+            outputFormat: $outputFormat,
+            additionalOptions: $this->additionalOptions,
         );
     }
 

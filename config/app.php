@@ -6,7 +6,6 @@ use App\Providers\AppServiceProvider;
 use App\Providers\ValidateLinksServiceProvider;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -62,5 +61,4 @@ return [
         AppServiceProvider::class,
         ValidateLinksServiceProvider::class,
     ],
-
 ];

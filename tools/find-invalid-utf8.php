@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Script to find invalid UTF-8 content in PHP files
+ * Script to find invalid UTF-8 content in PHP files.
  */
 function findInvalidUtf8InDirectory(string $dir): void
 {
     if (! is_dir($dir)) {
-        echo "Directory $dir does not exist.\n";
+        echo "Directory {$dir} does not exist.\n";
 
         return;
     }
 
     $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
+        new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
     );
 
     $foundIssues = false;
@@ -28,7 +28,7 @@ function findInvalidUtf8InDirectory(string $dir): void
         $content = file_get_contents($filepath);
 
         if ($content === false) {
-            echo "Could not read file: $filepath\n";
+            echo "Could not read file: {$filepath}\n";
 
             continue;
         }
@@ -36,14 +36,14 @@ function findInvalidUtf8InDirectory(string $dir): void
         // Check if the entire file content is valid UTF-8
         if (! mb_check_encoding($content, 'UTF-8')) {
             $foundIssues = true;
-            echo "\n❌ Invalid UTF-8 found in: $filepath\n";
+            echo "\n❌ Invalid UTF-8 found in: {$filepath}\n";
 
             // Check each line to find the problematic ones
             $lines = explode("\n", $content);
             foreach ($lines as $lineNum => $line) {
                 if (! mb_check_encoding($line, 'UTF-8')) {
                     $lineNumber = $lineNum + 1;
-                    echo "  📍 Line $lineNumber: ";
+                    echo "  📍 Line {$lineNumber}: ";
 
                     // Show visible characters and hex for non-printable
                     $displayLine = '';
@@ -56,10 +56,10 @@ function findInvalidUtf8InDirectory(string $dir): void
                         }
                     }
 
-                    echo "$displayLine\n";
+                    echo "{$displayLine}\n";
 
                     // Also show raw hex
-                    echo '    Hex: '.bin2hex($line)."\n";
+                    echo '    Hex: ' . bin2hex($line) . "\n";
                 }
             }
         }
@@ -68,13 +68,13 @@ function findInvalidUtf8InDirectory(string $dir): void
         if (preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $content)) {
             if (! $foundIssues) {
                 $foundIssues = true;
-                echo "\n⚠️  Control characters found in: $filepath\n";
+                echo "\n⚠️  Control characters found in: {$filepath}\n";
             }
         }
     }
 
     if (! $foundIssues) {
-        echo "✅ No invalid UTF-8 content found in $dir\n";
+        echo "✅ No invalid UTF-8 content found in {$dir}\n";
     }
 }
 
@@ -82,27 +82,27 @@ function findInvalidUtf8InSpecificFiles(array $files): void
 {
     foreach ($files as $file) {
         if (! file_exists($file)) {
-            echo "File $file does not exist.\n";
+            echo "File {$file} does not exist.\n";
 
             continue;
         }
 
         $content = file_get_contents($file);
         if ($content === false) {
-            echo "Could not read file: $file\n";
+            echo "Could not read file: {$file}\n";
 
             continue;
         }
 
         if (! mb_check_encoding($content, 'UTF-8')) {
-            echo "\n❌ Invalid UTF-8 found in: $file\n";
+            echo "\n❌ Invalid UTF-8 found in: {$file}\n";
 
             $lines = explode("\n", $content);
             foreach ($lines as $lineNum => $line) {
                 if (! mb_check_encoding($line, 'UTF-8')) {
                     $lineNumber = $lineNum + 1;
-                    echo "  📍 Line $lineNumber: ".bin2hex($line)."\n";
-                    echo '    Text: '.mb_convert_encoding($line, 'UTF-8', 'UTF-8')."\n";
+                    echo "  📍 Line {$lineNumber}: " . bin2hex($line) . "\n";
+                    echo '    Text: ' . mb_convert_encoding($line, 'UTF-8', 'UTF-8') . "\n";
                 }
             }
         }

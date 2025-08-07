@@ -39,11 +39,11 @@ final class ValidateLinksServiceProvider extends ServiceProvider
         $this->app->singleton(GitHubAnchorInterface::class, GitHubAnchorService::class);
 
         // Reporting service (no dependencies)
-        $this->app->singleton(ReportingInterface::class, fn (Application $app): ReportingService => new ReportingService());
+        $this->app->singleton(ReportingInterface::class, fn (Application $application): ReportingService => new ReportingService());
 
         // Link validation service (depends on security service)
-        $this->app->singleton(LinkValidationInterface::class, fn (Application $app): LinkValidationService => new LinkValidationService(
-            $app->make(SecurityValidationInterface::class)
+        $this->app->singleton(LinkValidationInterface::class, fn (Application $application): LinkValidationService => new LinkValidationService(
+            $application->make(SecurityValidationInterface::class),
         ));
     }
 

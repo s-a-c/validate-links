@@ -30,15 +30,16 @@ final readonly class ConcurrentValidationService
     }
 
     /**
-     * @param  array<array{url: string, text: string, line: int}>  $links
+     * @param array<array{url: string, text: string, line: int}> $links
+     *
      * @return array<ValidationResult>
      */
     public function validateExternalLinksConcurrently(array $links): array
     {
-        $requests = $this->createRequests($links);
+        $generator = $this->createRequests($links);
         $results = [];
 
-        $pool = new Pool($this->httpClient, $requests, [
+        $pool = new Pool($this->httpClient, $generator, [
             'concurrency' => $this->concurrency,
             'fulfilled' => function (ResponseInterface $response, $index) use (&$results, $links): void {
                 if (isset($links[$index])) {
@@ -59,7 +60,7 @@ final readonly class ConcurrentValidationService
     }
 
     /**
-     * @param  array<array{url: string}>  $links
+     * @param array<array{url: string}> $links
      */
     private function createRequests(array $links): Generator
     {
@@ -71,7 +72,7 @@ final readonly class ConcurrentValidationService
     /**
      * Process successful HTTP response.
      *
-     * @param  array{url: string}  $link
+     * @param array{url: string} $link
      */
     private function processSuccessfulResponse(ResponseInterface $response, array $link): ValidationResult
     {
@@ -85,14 +86,14 @@ final readonly class ConcurrentValidationService
             $link['url'],
             ValidationScope::EXTERNAL,
             LinkStatus::BROKEN,
-            "HTTP {$statusCode}"
+            "HTTP {$statusCode}",
         );
     }
 
     /**
      * Process failed HTTP response.
      *
-     * @param  array{url: string}  $link
+     * @param array{url: string} $link
      */
     private function processFailedResponse(mixed $reason, array $link): ValidationResult
     {
@@ -106,7 +107,7 @@ final readonly class ConcurrentValidationService
             $link['url'],
             ValidationScope::EXTERNAL,
             LinkStatus::BROKEN,
-            $errorMessage
+            $errorMessage,
         );
     }
 }
